@@ -1,4 +1,4 @@
-use sdl2::Sdl;
+use sdl2::{Sdl, VideoSubsystem};
 use sdl2::render::WindowCanvas;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
@@ -39,7 +39,7 @@ impl BitmapOutput {
 // such as setting up the backend libraries and systems, as well as creating and handling the windows.
 pub struct Framework {
     sdl_context: Sdl,
-    output: BitmapOutput,
+    video_subsystem: VideoSubsystem,
 }
 
 // TODO: Introduce proper error handling
@@ -47,16 +47,19 @@ impl Framework {
     pub fn init() -> Framework {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
-        let window = video_subsystem.window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT)
-            .position_centered()
-            .build()
-            .unwrap();
-        let output = BitmapOutput::new(window.into_canvas().build().unwrap());
 
         Framework {
             sdl_context,
-            output,
+            video_subsystem,
         }
+    }
+
+    pub fn create_video_output(&self) -> BitmapOutput {
+        let window = self.video_subsystem.window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT)
+            .position_centered()
+            .build()
+            .unwrap();
+        BitmapOutput::new(window.into_canvas().build().unwrap())
     }
 
     pub fn run<R: FnMut() -> ()>(&self, mut render: R) {
