@@ -17,6 +17,10 @@ impl Vec2f {
         Self::new(u, u)
     }
 
+    pub fn from_direction(d: f32) -> Self {
+        Self::new(d.cos(), d.sin())
+    }
+
     pub fn zero() -> Self {
         Self::from_uniform(0.0)
     }
