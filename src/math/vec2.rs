@@ -1,4 +1,3 @@
-use sdl2::rect::Point;
 use std::ops::{Neg, Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 
 #[derive(Clone, Copy, PartialEq)]
@@ -111,12 +110,5 @@ impl DivAssign<f32> for Vec2f {
     fn div_assign(&mut self, rhs: f32) {
        self.x /= rhs;
        self.y /= rhs;
-    }
-}
-
-// Conversions
-impl From<Vec2f> for Point {
-    fn from(v: Vec2f) -> Point {
-        Point::new(v.x as i32, v.y as i32)
     }
 }
