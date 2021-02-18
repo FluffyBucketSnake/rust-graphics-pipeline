@@ -1,5 +1,6 @@
 extern crate sdl2;
 
+mod color;
 mod framework;
 mod pipeline;
 mod vec;
