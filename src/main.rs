@@ -13,6 +13,7 @@ use sdl2::pixels::Color;
 fn main() {
     let framework = Framework::init();
     let mut output = framework.create_video_output();
+    let rasterizer = Rasterizer::new();
 
     framework.run(|| { 
         let output = &mut output;
@@ -25,7 +26,7 @@ fn main() {
         let mut theta = 0.0f32;
         while theta < 2.0 * std::f32::consts::PI {
             let origin = Vec2f::new(400.0, 300.0);
-            draw_line(output, (origin, Color::BLUE), (origin + (LENGTH * Vec2f::from_direction(theta)), Color::RED));
+            rasterizer.draw_line(output, (origin, Color::BLUE), (origin + (LENGTH * Vec2f::from_direction(theta)), Color::RED));
             theta += DTHETA;
         }
         
