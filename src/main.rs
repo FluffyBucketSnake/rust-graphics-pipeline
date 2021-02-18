@@ -4,9 +4,10 @@ mod framework;
 mod pipeline;
 mod vec;
 
-use framework::Framework;
-use pipeline::*;
-use vec::Vec2f;
+use sdl2::pixels::Color;
+use crate::framework::Framework;
+use crate::pipeline::*;
+use crate::vec::Vec2f;
 
 fn main() {
     let framework = Framework::init();
@@ -23,7 +24,7 @@ fn main() {
         let mut theta = 0.0f32;
         while theta < 2.0 * std::f32::consts::PI {
             let origin = Vec2f::new(400.0, 300.0);
-            draw_line(output, origin, origin + (LENGTH * Vec2f::from_direction(theta)));
+            draw_line(output, origin, origin + (LENGTH * Vec2f::from_direction(theta)), Color::RED);
             theta += DTHETA;
         }
         
