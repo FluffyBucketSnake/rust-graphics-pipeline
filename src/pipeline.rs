@@ -1,6 +1,6 @@
 use crate::color::mix;
 use crate::framework::BitmapOutput;
-use crate::vec::Vec2f;
+use crate::math::Vec2f;
 use sdl2::pixels::Color;
 
 pub fn draw_line(target: &mut BitmapOutput, start: (Vec2f, Color), end: (Vec2f, Color)) {

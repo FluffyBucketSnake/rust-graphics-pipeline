@@ -3,11 +3,11 @@ extern crate sdl2;
 mod color;
 mod framework;
 mod pipeline;
-mod vec;
+mod math;
 
 use crate::framework::Framework;
 use crate::pipeline::*;
-use crate::vec::Vec2f;
+use crate::math::Vec2f;
 use sdl2::pixels::Color;
 
 fn main() {
