@@ -4,10 +4,10 @@ mod framework;
 mod pipeline;
 mod vec;
 
-use sdl2::pixels::Color;
 use crate::framework::Framework;
 use crate::pipeline::*;
 use crate::vec::Vec2f;
+use sdl2::pixels::Color;
 
 fn main() {
     let framework = Framework::init();
