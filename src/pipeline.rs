@@ -12,7 +12,7 @@ impl Rasterizer {
         }
     }
 
-    pub fn draw_line(&self, target: &mut BitmapOutput, start: (Vec2f, Color), end: (Vec2f, Color)) {
+    pub fn draw_line(&self, target: &mut BitmapOutput, start: &(Vec2f, Color), end: &(Vec2f, Color)) {
         // Based on DDA algorithm.
         let delta = end.0 - start.0;
         let step = f32::max(delta.x.abs(), delta.y.abs());
