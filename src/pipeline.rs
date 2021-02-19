@@ -1,6 +1,6 @@
 use crate::color::mix;
 use crate::framework::BitmapOutput;
-use crate::math::Vec2f;
+use crate::math::Vec3f;
 use crate::vertex::Vertex;
 
 pub struct Rasterizer {
@@ -16,9 +16,9 @@ impl Rasterizer {
         // Based on DDA algorithm.
         let delta = end.position - start.position;
         let step = f32::max(delta.x.abs(), delta.y.abs());
-        let Vec2f { x: xi, y: yi } = delta / step;
+        let Vec3f { x: xi, y: yi, z: _ } = delta / step;
 
-        let Vec2f { mut x, mut y } = start.position;
+        let Vec3f { mut x, mut y, z: _ } = start.position;
         let mut i: f32 = 0.0;
         while i < step {
             target.put_pixel(x as i32, y as i32, mix(start.color, end.color, i / f32::max(step - 1.0, 1.0)));

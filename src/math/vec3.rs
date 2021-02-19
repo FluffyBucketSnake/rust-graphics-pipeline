@@ -11,7 +11,11 @@ pub struct Vec3f {
 // Operations
 impl Vec3f {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
-        Vec3f { x, y, z }
+        Self { x, y, z }
+    }
+
+    pub fn from_vec2(xy: Vec2f, z: f32) -> Self {
+        Self { x: xy.x, y: xy.y, z }
     }
 
     pub fn from_uniform(u: f32) -> Self {
