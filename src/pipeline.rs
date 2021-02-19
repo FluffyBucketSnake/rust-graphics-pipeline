@@ -32,3 +32,18 @@ impl Rasterizer {
 pub struct Pipeline {
     rasterizer: Rasterizer,
 }
+
+impl Pipeline {
+    pub fn new() -> Self {
+        Self {
+            rasterizer: Rasterizer::new(),
+        }
+    }
+
+    pub fn draw_primitives(&self, target: &mut BitmapOutput, primitives: &[(Vertex, Vertex)]) {
+        for primitive in primitives {
+            let (start, end) = primitive;
+            self.rasterizer.draw_line(target, start, end);
+        }
+    }
+}
