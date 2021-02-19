@@ -31,19 +31,31 @@ impl Rasterizer {
 
 pub struct Pipeline {
     rasterizer: Rasterizer,
+    screen_size: (f32, f32),
 }
 
 impl Pipeline {
-    pub fn new() -> Self {
+    pub fn new(screen_size: (f32, f32)) -> Self {
         Self {
             rasterizer: Rasterizer::new(),
+            screen_size,
         }
     }
 
     pub fn draw_primitives(&self, target: &mut BitmapOutput, primitives: &[(Vertex, Vertex)]) {
         for primitive in primitives {
-            let (start, end) = primitive;
-            self.rasterizer.draw_line(target, start, end);
+            let (mut start, mut end) = primitive;
+            // Rasterization Begin
+            // Convert coordinates to device coordinates.
+            start.position += Vec3f::one();
+            start.position.x *= self.screen_size.0 / 2.0;
+            start.position.y *= self.screen_size.1 / 2.0;
+            end.position += Vec3f::one();
+            end.position.x *= self.screen_size.0 / 2.0;
+            end.position.y *= self.screen_size.1 / 2.0;
+            // Render primitive.
+            self.rasterizer.draw_line(target, &start, &end);
+            // Rasterization End
         }
     }
 }

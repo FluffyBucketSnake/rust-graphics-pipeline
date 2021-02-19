@@ -6,8 +6,8 @@ use sdl2::keyboard::Keycode;
 use std::time::Duration;
 
 const WINDOW_TITLE: &str = "Dummy Graphics Pipeline";
-const WINDOW_WIDTH: u32 = 800;
-const WINDOW_HEIGHT: u32 = 600;
+const WINDOW_WIDTH: u32 = 640;
+const WINDOW_HEIGHT: u32 = 640;
 
 pub struct BitmapOutput {
     canvas: WindowCanvas,
