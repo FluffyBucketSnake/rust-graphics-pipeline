@@ -1,6 +1,6 @@
 use crate::color::mix;
 use crate::framework::BitmapOutput;
-use crate::math::Vec3f;
+use crate::math::{Matrix, Vec3f};
 use crate::vertex::Vertex;
 
 pub struct Rasterizer {
@@ -46,13 +46,14 @@ impl Pipeline {
         for primitive in primitives {
             let (mut start, mut end) = primitive;
             // Rasterization Begin
+            // Convert coordinates to clip space.
+            start.position /= start.position.z;
+            end.position /= end.position.z;
             // Convert coordinates to device coordinates.
-            start.position += Vec3f::one();
-            start.position.x *= self.screen_size.0 / 2.0;
-            start.position.y *= self.screen_size.1 / 2.0;
-            end.position += Vec3f::one();
-            end.position.x *= self.screen_size.0 / 2.0;
-            end.position.y *= self.screen_size.1 / 2.0;
+            let window_transform = Matrix::scale(self.screen_size.0 / 2.0, self.screen_size.1 / 2.0, 1.0)
+                                    .transform(&Matrix::translate(1.0, 1.0, 0.0));
+            start.position = window_transform.transform_vec3f(&start.position);
+            end.position = window_transform.transform_vec3f(&end.position);
             // Render primitive.
             self.rasterizer.draw_line(target, &start, &end);
             // Rasterization End
