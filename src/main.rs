@@ -15,7 +15,7 @@ use crate::graphics::*;
 fn main() {
     let framework = Framework::init();
     let mut output = framework.create_video_output();
-    let pipeline = Pipeline::new();
+    let mut pipeline = Pipeline::new();
 
     // Rotate the model's x-axis by theta.
     let mut theta = 0.0;
@@ -29,16 +29,11 @@ fn main() {
         let output = &mut output;
 
         let world = Matrix::rotate_x(theta) * translation;
-        let model_t: Vec<_> = model.iter().map( |line| {
-            let (mut start, mut end) = line.clone();
-            start.position = world * start.position;
-            end.position = world * end.position;
-            (start, end)
-        }).collect();
+        pipeline.set_worldviewproj(world);
 
         output.clear(sdl2::pixels::Color::BLACK);
 
-        pipeline.draw(&model_t.as_slice(), output);
+        pipeline.draw(&model, output);
 
         theta += 0.01;
         theta = theta % (2.0 * std::f32::consts::PI);
