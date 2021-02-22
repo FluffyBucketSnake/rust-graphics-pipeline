@@ -7,12 +7,9 @@ mod models;
 mod pipeline;
 mod vertex;
 
-use std::ops::Rem;
-
 use crate::framework::Framework;
 use crate::math::Matrix;
 use crate::pipeline::*;
-
 
 fn main() {
     let framework = Framework::init();
@@ -44,7 +41,7 @@ fn main() {
         pipeline.draw_primitives(output, &model_t);
 
         theta += 0.01;
-        theta = theta.rem(std::f32::consts::PI * 2.0);
+        theta = theta % (2.0 * std::f32::consts::PI);
         
         output.present();
     });
