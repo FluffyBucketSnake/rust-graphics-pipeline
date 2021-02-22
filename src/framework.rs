@@ -20,6 +20,10 @@ impl BitmapOutput {
         }
     }
 
+    pub fn size(&self) -> (u32, u32) {
+        self.canvas.window().size()
+    }
+
     pub fn clear(&mut self, color: Color) {
         self.canvas.set_draw_color(color);
         self.canvas.clear();
