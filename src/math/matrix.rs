@@ -72,3 +72,79 @@ impl Matrix {
     }
 }
 
+macro_rules! op_impl {
+    (matrix, $opt:ident, $opf:ident, $aopt:ident, $aopf:ident, $op:tt) => {
+        impl std::ops::$opt for Matrix {
+            type Output = Matrix;
+
+            fn $opf(self, rhs: Self) -> Self::Output {
+                Matrix::new(self.m11 $op rhs.m11, self.m12 $op rhs.m12, self.m13 $op rhs.m13, self.m14 $op rhs.m14,
+                            self.m21 $op rhs.m21, self.m22 $op rhs.m22, self.m23 $op rhs.m23, self.m24 $op rhs.m24,
+                            self.m31 $op rhs.m31, self.m32 $op rhs.m32, self.m33 $op rhs.m33, self.m34 $op rhs.m34,
+                            self.m41 $op rhs.m41, self.m42 $op rhs.m42, self.m43 $op rhs.m43, self.m44 $op rhs.m44)
+            }
+        }
+
+        impl std::ops::$aopt for Matrix {
+            fn $aopf(&mut self, rhs: Self) {
+                *self = *self $op rhs;
+            }
+        }
+    };
+    (uniform, commutative, $ut:ident, $opt:ident, $opf:ident, $aopt:ident, $aopf:ident, $op:tt) => {
+        op_impl!(uniform, $ut, $opt, $opf, $aopt, $aopf, $op);
+
+        impl std::ops::$opt<Matrix> for $ut {
+            type Output = Matrix;
+
+            fn $opf(self, rhs: Matrix) -> Self::Output {
+                rhs * self
+            }
+        }
+    };
+    (uniform, $ut:ident, $opt:ident, $opf:ident, $aopt:ident, $aopf:ident, $op:tt) => {
+        impl std::ops::$opt<$ut> for Matrix {
+            type Output = Matrix;
+
+            fn $opf(self, rhs: $ut) -> Self::Output {
+                Matrix::new(self.m11 $op rhs, self.m12 $op rhs, self.m13 $op rhs, self.m14 $op rhs,
+                            self.m21 $op rhs, self.m22 $op rhs, self.m23 $op rhs, self.m24 $op rhs,
+                            self.m31 $op rhs, self.m32 $op rhs, self.m33 $op rhs, self.m34 $op rhs,
+                            self.m41 $op rhs, self.m42 $op rhs, self.m43 $op rhs, self.m44 $op rhs)
+            }
+        }
+
+        impl std::ops::$aopt<$ut> for Matrix {
+            fn $aopf(&mut self, rhs: $ut) {
+                *self = *self $op rhs;
+            }
+        }
+    };
+    (transform, $tt:ident, $tm:ident) => {
+        impl std::ops::Mul<$tt> for Matrix {
+            type Output = $tt;
+
+            fn mul(self, rhs: $tt) -> Self::Output {
+                self.$tm(&rhs)
+            }
+        }
+    }
+}
+
+op_impl!(matrix, Add, add, AddAssign, add_assign, +);
+op_impl!(matrix, Sub, sub, SubAssign, sub_assign, -);
+op_impl!(uniform, commutative, f32, Mul, mul, MulAssign, mul_assign, *);
+op_impl!(uniform, f32, Div, div, DivAssign, div_assign, /);
+op_impl!(transform, Matrix, transform);
+op_impl!(transform, Vec3f, transform_vec3f);
+
+impl std::ops::Neg for Matrix {
+    type Output = Matrix;
+
+    fn neg(self) -> Self::Output {
+        Self::new(-self.m11, -self.m12, -self.m13, -self.m14,
+                  -self.m21, -self.m22, -self.m23, -self.m24,
+                  -self.m31, -self.m32, -self.m33, -self.m34,
+                  -self.m41, -self.m42, -self.m43, -self.m44)
+    }
+}

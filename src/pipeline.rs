@@ -51,9 +51,9 @@ impl Pipeline {
             end.position /= end.position.z;
             // Convert coordinates to device coordinates.
             let window_transform = Matrix::scale(self.screen_size.0 / 2.0, self.screen_size.1 / 2.0, 1.0)
-                                    .transform(&Matrix::translate(1.0, 1.0, 0.0));
-            start.position = window_transform.transform_vec3f(&start.position);
-            end.position = window_transform.transform_vec3f(&end.position);
+                                    * Matrix::translate(1.0, 1.0, 0.0);
+            start.position = window_transform * start.position;
+            end.position = window_transform * end.position;
             // Render primitive.
             self.rasterizer.draw_line(target, &start, &end);
             // Rasterization End

@@ -67,11 +67,11 @@ fn main() {
     framework.run(|| { 
         let output = &mut output;
 
-        let world = translation.transform(&Matrix::rotate_x(theta));
+        let world = Matrix::rotate_x(theta) * translation;
         let model_t: Vec<_> = model.iter().map( |line| {
             let (mut start, mut end) = line.clone();
-            start.position = world.transform_vec3f(&start.position);
-            end.position = world.transform_vec3f(&end.position);
+            start.position = world * start.position;
+            end.position = world * end.position;
 
             (start, end)
         }).collect();
