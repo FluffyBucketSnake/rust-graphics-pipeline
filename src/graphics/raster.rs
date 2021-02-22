@@ -25,8 +25,8 @@ where B: BitmapOutput {
         // Screen mapping phase.
         let screen_size = target.size();
         let screen_size = Vec2f::new(screen_size.0 as f32, screen_size.1 as f32);
-        let window_transform = Matrix::scale(screen_size.x / 2.0, screen_size.y / 2.0, 1.0)
-                                * Matrix::translate(1.0, 1.0, 0.0);
+        let window_transform = Matrix::scale(screen_size.x / 2.0, -screen_size.y / 2.0, 1.0)
+                                * Matrix::translate(1.0, -1.0, 0.0);
         start.position = window_transform * start.position;
         end.position = window_transform * end.position;
 
