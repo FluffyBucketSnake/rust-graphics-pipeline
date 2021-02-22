@@ -1,4 +1,5 @@
 use sdl2::{Sdl, VideoSubsystem};
+use crate::graphics::BitmapOutput;
 use sdl2::render::WindowCanvas;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
@@ -9,32 +10,35 @@ const WINDOW_TITLE: &str = "Dummy Graphics Pipeline";
 const WINDOW_WIDTH: u32 = 640;
 const WINDOW_HEIGHT: u32 = 640;
 
-pub struct BitmapOutput {
+pub struct CanvasOutput {
     canvas: WindowCanvas,
 }
 
-impl BitmapOutput {
-    pub fn new(canvas: WindowCanvas) -> BitmapOutput {
-        BitmapOutput {
+impl From<WindowCanvas> for CanvasOutput {
+    fn from(canvas: WindowCanvas) -> CanvasOutput {
+        CanvasOutput {
             canvas,
         }
     }
 
-    pub fn size(&self) -> (u32, u32) {
+}
+
+impl BitmapOutput for CanvasOutput {
+    fn size(&self) -> (u32, u32) {
         self.canvas.window().size()
     }
 
-    pub fn clear(&mut self, color: Color) {
+    fn clear(&mut self, color: Color) {
         self.canvas.set_draw_color(color);
         self.canvas.clear();
     }
 
-    pub fn put_pixel(&mut self, x:i32, y:i32, color: Color) {
+    fn put_pixel(&mut self, position: (u32, u32), color: Color) {
         self.canvas.set_draw_color(color);
-        self.canvas.draw_point((x, y)).ok();
+        self.canvas.draw_point(sdl2::rect::Point::new(position.0 as i32, position.1 as i32)).ok();
     }
 
-    pub fn present(&mut self) {
+    fn present(&mut self) {
         self.canvas.present();
     }
 }
@@ -58,12 +62,12 @@ impl Framework {
         }
     }
 
-    pub fn create_video_output(&self) -> BitmapOutput {
+    pub fn create_video_output(&self) -> CanvasOutput {
         let window = self.video_subsystem.window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT)
             .position_centered()
             .build()
             .unwrap();
-        BitmapOutput::new(window.into_canvas().build().unwrap())
+        CanvasOutput::from(window.into_canvas().build().unwrap())
     }
 
     pub fn run<R: FnMut() -> ()>(&self, mut render: R) {

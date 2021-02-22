@@ -2,6 +2,7 @@ extern crate sdl2;
 
 mod color;
 mod framework;
+mod graphics;
 mod math;
 mod models;
 mod pipeline;
@@ -9,12 +10,12 @@ mod vertex;
 
 use crate::framework::Framework;
 use crate::math::Matrix;
-use crate::pipeline::*;
+use crate::graphics::*;
 
 fn main() {
     let framework = Framework::init();
     let mut output = framework.create_video_output();
-    let pipeline = Pipeline::new((640.0, 640.0));
+    let pipeline = Pipeline::new();
 
     // Rotate the model's x-axis by theta.
     let mut theta = 0.0;
@@ -32,13 +33,12 @@ fn main() {
             let (mut start, mut end) = line.clone();
             start.position = world * start.position;
             end.position = world * end.position;
-
             (start, end)
         }).collect();
 
         output.clear(sdl2::pixels::Color::BLACK);
 
-        pipeline.draw_primitives(output, &model_t);
+        pipeline.draw(&model_t.as_slice(), output);
 
         theta += 0.01;
         theta = theta % (2.0 * std::f32::consts::PI);

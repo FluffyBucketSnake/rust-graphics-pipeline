@@ -31,12 +31,16 @@ impl Matrix {
     pub fn scale_uniform(value: f32) -> Self {
         Self::scale(value, value, value)
     }
+    
+    pub fn identity() -> Self {
+        Self::scale_uniform(1.0)
+    }
 
     pub fn rotate_x(angle: f32) -> Self {
-        Self::new(1.0,          0.0,         0.0, 0.0,
-                  0.0,  angle.cos(), angle.sin(), 0.0,
-                  0.0, -angle.sin(), angle.cos(), 0.0,
-                  0.0,          0.0,         0.0, 1.0)
+        Self::new(1.0,         0.0,          0.0, 0.0,
+                  0.0, angle.cos(), -angle.sin(), 0.0,
+                  0.0, angle.sin(),  angle.cos(), 0.0,
+                  0.0,         0.0,          0.0, 1.0)
     }
 
     pub fn translate(x: f32, y: f32, z: f32) -> Self {
