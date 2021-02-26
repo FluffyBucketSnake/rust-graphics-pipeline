@@ -30,9 +30,159 @@ impl Vec3f {
         Self::from_uniform(1.0)
     }
 
+    pub fn left() -> Self {
+        Self::new(1.0, 0.0, 0.0)
+    }
+
+    pub fn dot(&self, other: &Self) -> f32 {
+        (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
+    }
+
+    pub fn cross(&self, other: &Self) -> Self {
+        Self::new((self.y * other.z) - (self.z * other.y),
+                  (self.z * other.x) - (self.x * other.z),
+                  (self.x * other.y) - (self.y * other.x))
+    }
+
     pub fn xy(self) -> Vec2f {
         Vec2f::new(self.x, self.y)
     }
+}
+
+macro_rules! op_impl {
+    (vector, $trait:ident, $traitf:ident, $atrait:ident, $atraitf:ident, $op:tt, $aop:tt) => {
+        impl $trait<Vec3f> for Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: Vec3f) -> Self::Output {
+                 Vec3f::new(self.x $op rhs.x, self.y $op rhs.y, self.z $op rhs.z)
+            }
+        }
+
+        impl $trait<&Vec3f> for Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: &Vec3f) -> Self::Output {
+                 Vec3f::new(self.x $op rhs.x, self.y $op rhs.y, self.z $op rhs.z)
+            }
+        }
+
+        impl $trait<Vec3f> for &Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: Vec3f) -> Self::Output {
+                Vec3f::new(self.x $op rhs.x, self.y $op rhs.y, self.z $op rhs.z)
+            }
+        }
+        
+        impl $trait<&Vec3f> for &Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, &rhs: &Vec3f) -> Self::Output {
+                Vec3f::new(self.x $op rhs.x, self.y $op rhs.y, self.z $op rhs.z)
+            }
+        }
+
+        impl $atrait<Vec3f> for Vec3f {
+            fn $atraitf(&mut self, rhs: Self) {
+                self.x $aop rhs.x;
+                self.y $aop rhs.y;
+                self.z $aop rhs.z;
+            }
+        }
+
+        impl $atrait<&Vec3f> for Vec3f {
+            fn $atraitf(&mut self, rhs: &Vec3f) {
+                self.x $aop rhs.x;
+                self.y $aop rhs.y;
+                self.z $aop rhs.z;
+            }
+        }
+    };
+    (uniform, $trait:ident, $traitf:ident, $atrait:ident, $atraitf:ident, $op:tt, $aop:tt) => {
+        impl $trait<f32> for Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: f32) -> Self::Output {
+                 Vec3f::new(self.x $op rhs, self.y $op rhs, self.z $op rhs)
+            }
+        }
+
+        impl $trait<&f32> for Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: &f32) -> Self::Output {
+                 Vec3f::new(self.x $op rhs, self.y $op rhs, self.z $op rhs)
+            }
+        }
+
+        impl $trait<f32> for &Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: f32) -> Self::Output {
+                Vec3f::new(self.x $op rhs, self.y $op rhs, self.z $op rhs)
+            }
+        }
+        
+        impl $trait<&f32> for &Vec3f {
+            type Output = Vec3f;
+
+            fn $traitf(self, &rhs: &f32) -> Self::Output {
+                Vec3f::new(self.x $op rhs, self.y $op rhs, self.z $op rhs)
+            }
+        }
+
+        impl $atrait<f32> for Vec3f {
+            fn $atraitf(&mut self, rhs: f32) {
+                self.x $aop rhs;
+                self.y $aop rhs;
+                self.z $aop rhs;
+            }
+        }
+
+        impl $atrait<&f32> for Vec3f {
+            fn $atraitf(&mut self, rhs: &f32) {
+                self.x $aop rhs;
+                self.y $aop rhs;
+                self.z $aop rhs;
+            }
+        }
+    };
+    (uniform, commutative, $trait:ident, $traitf:ident, $atrait:ident, $atraitf:ident, $op:tt, $aop:tt) => {
+        op_impl!(uniform, $trait, $traitf, $atrait, $atraitf, $op, $aop);
+
+        impl $trait<Vec3f> for f32 {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: Vec3f) -> Self::Output {
+                rhs $op self
+            }
+        }
+
+        impl $trait<&Vec3f> for f32 {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: &Vec3f) -> Self::Output {
+                rhs $op self
+            }
+        }
+
+        impl $trait<Vec3f> for &f32 {
+            type Output = Vec3f;
+
+            fn $traitf(self, rhs: Vec3f) -> Self::Output {
+                rhs $op self
+            }
+        }
+        
+        impl $trait<&Vec3f> for &f32 {
+            type Output = Vec3f;
+
+            fn $traitf(self, &rhs: &Vec3f) -> Self::Output {
+                rhs $op self
+            }
+        }
+    };
 }
 
 impl Neg for Vec3f {
@@ -43,74 +193,9 @@ impl Neg for Vec3f {
     }
 }
 
-impl Add for Vec3f {
-    type Output = Vec3f;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
-    }
-}
-
-impl Sub for Vec3f {
-    type Output = Vec3f;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self::new(self.x - rhs.x, self.y - rhs.y, self.z - rhs.z)
-    }
-}
-
-impl Mul<f32> for Vec3f {
-    type Output = Vec3f;
-
-    fn mul(self, rhs: f32) -> Self::Output {
-        Self::new(self.x * rhs, self.y * rhs, self.z * rhs)
-    }
-}
-
-impl Div<f32> for Vec3f {
-    type Output = Vec3f;
-
-    fn div(self, rhs: f32) -> Self::Output {
-        Self::new(self.x / rhs, self.y / rhs, self.z / rhs)
-    }
-}
-
-impl Mul<Vec3f> for f32 {
-    type Output = Vec3f;
-
-    fn mul(self, rhs: Vec3f) -> Self::Output {
-        Self::Output::new(self * rhs.x, self * rhs.y, self * rhs.z)
-    }
-}
-
-impl AddAssign for Vec3f {
-    fn add_assign(&mut self, rhs: Vec3f) {
-       self.x += rhs.x;
-       self.y += rhs.y;
-       self.z += rhs.z;
-    }
-}
-
-impl SubAssign for Vec3f {
-    fn sub_assign(&mut self, rhs: Vec3f) {
-       self.x -= rhs.x;
-       self.y -= rhs.y;
-       self.z -= rhs.z;
-    }
-}
-
-impl MulAssign<f32> for Vec3f {
-    fn mul_assign(&mut self, rhs: f32) {
-       self.x *= rhs;
-       self.y *= rhs;
-       self.z *= rhs;
-    }
-}
-
-impl DivAssign<f32> for Vec3f {
-    fn div_assign(&mut self, rhs: f32) {
-       self.x /= rhs;
-       self.y /= rhs;
-       self.z /= rhs;
-    }
-}
+op_impl!(vector, Add, add, AddAssign, add_assign, +, +=);
+op_impl!(vector, Sub, sub, SubAssign, sub_assign, -, -=);
+op_impl!(vector, Mul, mul, MulAssign, mul_assign, *, *=);
+op_impl!(vector, Div, div, DivAssign, div_assign, /, /=);
+op_impl!(uniform, commutative, Mul, mul, MulAssign, mul_assign, *, *=);
+op_impl!(uniform, Div, div, DivAssign, div_assign, /, /=);
