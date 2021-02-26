@@ -1,6 +1,7 @@
 use crate::color::mix;
 use crate::math::{Matrix, Vec2f, Vec3f};
 use crate::vertex::Vertex;
+use super::clipping::clip_line;
 use super::{BitmapOutput, GPU};
 
 /// The graphics processing component responsible for rasterizing primitives into the screen.
@@ -21,6 +22,19 @@ impl<B> GPU<(Vertex, Vertex), B> for Rasterizer
 where B: BitmapOutput {
     fn draw(&self, line: (Vertex, Vertex), target: &mut B) {
         let (mut start, mut end) = line;
+
+        // Clip lines out side the window.
+        let line_xy = (start.position.xy(), end.position.xy());
+        if let Some(line_xy) = clip_line(line_xy) {
+            start.position.x = line_xy.0.x;
+            start.position.y = line_xy.0.y;
+            end.position.x = line_xy.1.x;
+            end.position.y = line_xy.1.y;
+        }
+        else {
+            // Line has been completely clipped out.
+            return;
+        }
         
         // Screen mapping phase.
         let screen_size = target.size();

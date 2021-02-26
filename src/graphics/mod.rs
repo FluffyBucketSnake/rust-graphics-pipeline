@@ -1,3 +1,4 @@
+mod clipping;
 mod gpu;
 mod pipeline;
 mod raster;
