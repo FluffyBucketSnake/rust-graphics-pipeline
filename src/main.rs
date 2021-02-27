@@ -8,6 +8,9 @@ mod models;
 mod pipeline;
 mod vertex;
 
+#[cfg(test)]
+mod tests;
+
 use crate::framework::Framework;
 use crate::math::Matrix;
 use crate::graphics::*;

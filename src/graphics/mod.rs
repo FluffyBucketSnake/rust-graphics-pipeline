@@ -1,10 +1,12 @@
 mod clipping;
 mod gpu;
 mod pipeline;
+mod primitives;
 mod raster;
 
 pub use self::gpu::*;
 pub use self::pipeline::*;
+pub use self::primitives::*;
 
 use crate::color::Color;
 
