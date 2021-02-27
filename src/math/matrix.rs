@@ -1,5 +1,14 @@
-use crate::math::Vec3f;
-
+/// Represents a right-handed 4x4 matrix, which can be used to apply transformation to vectors.
+///
+/// # Examples
+///
+/// ```
+/// let vector = crate::math::Vec3f::new(1.0, 0.0, 0.0);
+///
+/// let transform = crate::math::Matrix::translate(1.0, 1.0, 1.0);
+///
+/// assert_eq!(vector + 1.0, vector * transform);
+/// ```
 #[derive(Copy, Clone)]
 pub struct Matrix {
     pub m11: f32, pub m12: f32, pub m13: f32, pub m14: f32,
@@ -9,6 +18,7 @@ pub struct Matrix {
 }
 
 impl Matrix {
+    /// Constructs a new matrix using each element individually.
     pub fn new(m11: f32, m12: f32, m13: f32, m14: f32,
                m21: f32, m22: f32, m23: f32, m24: f32,
                m31: f32, m32: f32, m33: f32, m34: f32,
@@ -20,7 +30,13 @@ impl Matrix {
             m41, m42, m43, m44,
         }
     }
+    
+    /// The identity matrix.
+    pub fn identity() -> Self {
+        Self::scale_uniform(1.0)
+    }
 
+    /// Constructs a matrix for scale transformations.
     pub fn scale(x: f32, y: f32, z: f32) -> Self {
         Self::new(  x, 0.0, 0.0, 0.0,
                   0.0,   y, 0.0, 0.0,
@@ -28,14 +44,12 @@ impl Matrix {
                   0.0, 0.0, 0.0, 1.0)
     }
 
+    /// Constructs a matrix for uniform scale transformations.
     pub fn scale_uniform(value: f32) -> Self {
         Self::scale(value, value, value)
     }
-    
-    pub fn identity() -> Self {
-        Self::scale_uniform(1.0)
-    }
 
+    /// Constructs a matrix for rotating around the x-axis.
     pub fn rotate_x(angle: f32) -> Self {
         Self::new(1.0,         0.0,          0.0, 0.0,
                   0.0, angle.cos(), -angle.sin(), 0.0,
@@ -43,6 +57,7 @@ impl Matrix {
                   0.0,         0.0,          0.0, 1.0)
     }
     
+    /// Constructs a matrix for rotating around the y-axis.
     pub fn rotate_y(angle: f32) -> Self {
         Self::new( angle.cos(), 0.0, angle.sin(), 0.0,
                            0.0, 1.0,         0.0, 0.0,
@@ -50,6 +65,7 @@ impl Matrix {
                            0.0, 0.0,         0.0, 1.0)
     }
 
+    /// Constructs a matrix for rotating around the z-axis.
     pub fn rotate_z(angle: f32) -> Self {
         Self::new(angle.cos(), -angle.sin(), 0.0, 0.0,
                   angle.sin(),  angle.cos(), 0.0, 0.0,
@@ -57,6 +73,7 @@ impl Matrix {
                           0.0,          0.0, 0.0, 1.0)
     }
 
+    /// Constructs a matrix for translation transformations.
     pub fn translate(x: f32, y: f32, z: f32) -> Self {
         Self::new(1.0, 0.0, 0.0,   x,
                   0.0, 1.0, 0.0,   y,
@@ -65,12 +82,14 @@ impl Matrix {
     }
 }
 
+/// Types that supports matrix transformations.
 pub trait Transform {
     fn transform(&self, matrix: &Matrix) -> Self;
     fn transform_self(&mut self, matrix: &Matrix);
 }
 
 impl Transform for Matrix {
+    /// Concatenates matrix transformations together.
     fn transform(&self, rhs: &Self) -> Self {
         Self::new((self.m11 * rhs.m11) + (self.m12 * rhs.m21) + (self.m13 * rhs.m31) + (self.m14 * rhs.m41),
                   (self.m11 * rhs.m12) + (self.m12 * rhs.m22) + (self.m13 * rhs.m32) + (self.m14 * rhs.m42),
@@ -90,6 +109,7 @@ impl Transform for Matrix {
                   (self.m41 * rhs.m14) + (self.m42 * rhs.m24) + (self.m43 * rhs.m34) + (self.m44 * rhs.m44))
     }
 
+    /// Concatenates matrix transformations into itself.
     fn transform_self(&mut self, matrix: &Matrix) {
         self.m11 = (self.m11 * matrix.m11) + (self.m12 * matrix.m21) + (self.m13 * matrix.m31) + (self.m14 * matrix.m41);
         self.m12 = (self.m11 * matrix.m12) + (self.m12 * matrix.m22) + (self.m13 * matrix.m32) + (self.m14 * matrix.m42);

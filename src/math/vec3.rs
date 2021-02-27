@@ -14,14 +14,17 @@ impl Vec3f {
     // Constructors
     //
     
+    /// Creates a new 3D vector using the x,y and z coordinates.
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
+    /// Creates a new 3D vector using a 2D vector(x and y) and a scalar(z).
     pub fn from_vec2(xy: Vec2f, z: f32) -> Self {
         Self { x: xy.x, y: xy.y, z }
     }
 
+    /// Creates a 3D vector with the same coordinates values.
     pub fn from_uniform(u: f32) -> Self {
         Self::new(u, u, u)
     }
@@ -30,34 +33,46 @@ impl Vec3f {
     // Defaults
     // 
 
+    /// The additive-identity of 3D vectors.
+    ///
+    /// Value: (0.0, 0.0, 0.0)
     pub fn zero() -> Self {
         Self::from_uniform(0.0)
     }
 
+    /// The multiplicative-identity of 3D vectors.
+    ///
+    /// Value: (1.0, 1.0, 1.0)
     pub fn one() -> Self {
         Self::from_uniform(1.0)
     }
 
+    /// (-1.0, 0.0, 0.0)
     pub fn negative_x() -> Self {
         Self::new(-1.0, 0.0, 0.0)
     }
 
+    /// (1.0, 0.0, 0.0)
     pub fn positive_x() -> Self {
         Self::new(1.0, 0.0, 0.0)
     }
 
+    /// (0.0, -1.0, 0.0)
     pub fn negative_y() -> Self {
         Self::new(0.0, -1.0, 0.0)
     }
 
+    /// (0.0, 1.0, 0.0)
     pub fn positive_y() -> Self {
         Self::new(0.0, 1.0, 0.0)
     }
 
+    /// (0.0, 0.0, -1.0)
     pub fn negative_z() -> Self {
         Self::new(0.0, 0.0, -1.0)
     }
 
+    /// (0.0, 0.0, 1.0)
     pub fn positive_z() -> Self {
         Self::new(0.0, 0.0, 1.0)
     }
@@ -94,16 +109,19 @@ impl Vec3f {
     // Operations
     //
     
+    /// Calculates the dot product between two vectors.
     pub fn dot(&self, other: &Self) -> f32 {
         (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
     }
 
+    /// Calculates the cross product between two vectors.
     pub fn cross(&self, other: &Self) -> Self {
         Self::new((self.y * other.z) - (self.z * other.y),
                   (self.z * other.x) - (self.x * other.z),
                   (self.x * other.y) - (self.y * other.x))
     }
 
+    /// Returns the x and y coordinates as a 2D vector.
     pub fn xy(self) -> Vec2f {
         Vec2f::new(self.x, self.y)
     }

@@ -12,14 +12,17 @@ impl Vec2f {
     // Constructors
     //
     
+    /// Constructs a new 2D vector using the x and y coordinates.
     pub fn new(x: f32, y: f32) -> Self {
         Vec2f { x, y }
     }
 
+    /// Constructs a new 2D vector with same coordinates values.
     pub fn from_uniform(u: f32) -> Self {
         Self::new(u, u)
     }
 
+    /// Constructs a new 2D vector with length `1.0` using an angle (in radians).
     pub fn from_direction(d: f32) -> Self {
         Self::new(d.cos(), d.sin())
     }
@@ -28,26 +31,32 @@ impl Vec2f {
     // Defaults
     //
     
+    /// The additive-identity of 2D vectors.
     pub fn zero() -> Self {
         Self::from_uniform(0.0)
     }
 
+    /// The multiplicative-identity of 2D vectors.
     pub fn one() -> Self {
         Self::from_uniform(1.0)
     }
 
+    /// (-1.0, 0.0)
     pub fn negative_x() -> Self {
         Self::new(-1.0, 0.0)
     }
 
+    /// (1.0, 0.0)
     pub fn positive_x() -> Self {
         Self::new(1.0, 0.0)
     }
 
+    /// (0.0, -1.0)
     pub fn negative_y() -> Self {
         Self::new(0.0, -1.0)
     }
 
+    /// (0.0, 1.0)
     pub fn positive_y() -> Self {
         Self::new(0.0, 1.0)
     }
@@ -75,11 +84,13 @@ impl Vec2f {
     //
     // Operations
     //
-    
+
+    /// Calculates the dot product between two vectors.
     pub fn dot(&self, other: &Self) -> f32 {
         (self.x * other.x) + (self.y * other.y)
     }
 
+    /// Calculates the cross product between two vectors.
     pub fn cross(&self, other: &Self) -> f32 {
         (self.x * other.y) - (self.y * other.x)
     }
