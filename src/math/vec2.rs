@@ -1,7 +1,7 @@
     use super::matrix::{Matrix, Transform};
 use std::ops::{Neg, Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec2f {
     pub x: f32,
     pub y: f32,
@@ -93,6 +93,16 @@ impl Vec2f {
     /// Calculates the cross product between two vectors.
     pub fn cross(&self, other: &Self) -> f32 {
         (self.x * other.y) - (self.y * other.x)
+    }
+
+    /// Returns the squared length of the vector.
+    pub fn length_squared(&self) -> f32 {
+        self.dot(self)
+    }
+
+    /// Returns the length of the vector.
+    pub fn length(&self) -> f32 {
+        self.length_squared().sqrt()
     }
 }
 

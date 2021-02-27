@@ -2,7 +2,8 @@ use super::matrix::{Matrix, Transform};
 use super::vec2::Vec2f;
 use std::ops::{Neg, Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 
-#[derive(Clone, Copy, PartialEq)]
+/// Represents a 3D vector.
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3f {
     pub x: f32,
     pub y: f32,
@@ -124,6 +125,16 @@ impl Vec3f {
     /// Returns the x and y coordinates as a 2D vector.
     pub fn xy(self) -> Vec2f {
         Vec2f::new(self.x, self.y)
+    }
+
+    /// Returns the squared length of the vector.
+    pub fn length_squared(&self) -> f32 {
+        self.dot(self)
+    }
+
+    /// Returns the length of the vector.
+    pub fn length(&self) -> f32 {
+        self.length_squared().sqrt()
     }
 }
 
