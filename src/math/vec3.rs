@@ -1,3 +1,4 @@
+use super::matrix::{Matrix, Transform};
 use super::vec2::Vec2f;
 use std::ops::{Neg, Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
 
@@ -249,6 +250,20 @@ impl Neg for Vec3f {
 
     fn neg(self) -> Self::Output {
        Self::new(-self.x, -self.y, -self.z) 
+    }
+}
+
+impl Transform for Vec3f {
+    fn transform(&self, matrix: &Matrix) -> Self {
+        let mut result = *self;
+        result.transform_self(matrix);
+        result
+    }
+
+    fn transform_self(&mut self, matrix: &Matrix) {
+        self.x = (self.x * matrix.m11) + (self.y * matrix.m12) + (self.z * matrix.m13) + matrix.m14;
+        self.y = (self.x * matrix.m21) + (self.y * matrix.m22) + (self.z * matrix.m23) + matrix.m24;
+        self.z = (self.x * matrix.m31) + (self.y * matrix.m32) + (self.z * matrix.m33) + matrix.m34;
     }
 }
 

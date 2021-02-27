@@ -63,8 +63,15 @@ impl Matrix {
                   0.0, 0.0, 1.0,   z,
                   0.0, 0.0, 0.0, 1.0)
     }
+}
 
-    pub fn transform(&self, rhs: &Self) -> Self {
+pub trait Transform {
+    fn transform(&self, matrix: &Matrix) -> Self;
+    fn transform_self(&mut self, matrix: &Matrix);
+}
+
+impl Transform for Matrix {
+    fn transform(&self, rhs: &Self) -> Self {
         Self::new((self.m11 * rhs.m11) + (self.m12 * rhs.m21) + (self.m13 * rhs.m31) + (self.m14 * rhs.m41),
                   (self.m11 * rhs.m12) + (self.m12 * rhs.m22) + (self.m13 * rhs.m32) + (self.m14 * rhs.m42),
                   (self.m11 * rhs.m13) + (self.m12 * rhs.m23) + (self.m13 * rhs.m33) + (self.m14 * rhs.m43),
@@ -83,10 +90,42 @@ impl Matrix {
                   (self.m41 * rhs.m14) + (self.m42 * rhs.m24) + (self.m43 * rhs.m34) + (self.m44 * rhs.m44))
     }
 
-    pub fn transform_vec3f(&self, v: &Vec3f) -> Vec3f {
-        Vec3f::new((self.m11 * v.x) + (self.m12 * v.y) + (self.m13 * v.z) + self.m14,
-                   (self.m21 * v.x) + (self.m22 * v.y) + (self.m23 * v.z) + self.m24,
-                   (self.m31 * v.x) + (self.m32 * v.y) + (self.m33 * v.z) + self.m34)
+    fn transform_self(&mut self, matrix: &Matrix) {
+        self.m11 = (self.m11 * matrix.m11) + (self.m12 * matrix.m21) + (self.m13 * matrix.m31) + (self.m14 * matrix.m41);
+        self.m12 = (self.m11 * matrix.m12) + (self.m12 * matrix.m22) + (self.m13 * matrix.m32) + (self.m14 * matrix.m42);
+        self.m13 = (self.m11 * matrix.m13) + (self.m12 * matrix.m23) + (self.m13 * matrix.m33) + (self.m14 * matrix.m43);
+        self.m14 = (self.m11 * matrix.m14) + (self.m12 * matrix.m24) + (self.m13 * matrix.m34) + (self.m14 * matrix.m44);
+        self.m21 = (self.m21 * matrix.m11) + (self.m22 * matrix.m21) + (self.m23 * matrix.m31) + (self.m24 * matrix.m41);
+        self.m22 = (self.m21 * matrix.m12) + (self.m22 * matrix.m22) + (self.m23 * matrix.m32) + (self.m24 * matrix.m42);
+        self.m23 = (self.m21 * matrix.m13) + (self.m22 * matrix.m23) + (self.m23 * matrix.m33) + (self.m24 * matrix.m43);
+        self.m24 = (self.m21 * matrix.m14) + (self.m22 * matrix.m24) + (self.m23 * matrix.m34) + (self.m24 * matrix.m44);
+        self.m31 = (self.m31 * matrix.m11) + (self.m32 * matrix.m21) + (self.m33 * matrix.m31) + (self.m34 * matrix.m41);
+        self.m32 = (self.m31 * matrix.m12) + (self.m32 * matrix.m22) + (self.m33 * matrix.m32) + (self.m34 * matrix.m42);
+        self.m33 = (self.m31 * matrix.m13) + (self.m32 * matrix.m23) + (self.m33 * matrix.m33) + (self.m34 * matrix.m43);
+        self.m34 = (self.m31 * matrix.m14) + (self.m32 * matrix.m24) + (self.m33 * matrix.m34) + (self.m34 * matrix.m44);
+        self.m41 = (self.m41 * matrix.m11) + (self.m42 * matrix.m21) + (self.m43 * matrix.m31) + (self.m44 * matrix.m41);
+        self.m42 = (self.m41 * matrix.m12) + (self.m42 * matrix.m22) + (self.m43 * matrix.m32) + (self.m44 * matrix.m42);
+        self.m43 = (self.m41 * matrix.m13) + (self.m42 * matrix.m23) + (self.m43 * matrix.m33) + (self.m44 * matrix.m43);
+        self.m44 = (self.m41 * matrix.m14) + (self.m42 * matrix.m24) + (self.m43 * matrix.m34) + (self.m44 * matrix.m44);
+    }
+}
+
+impl std::ops::Neg for Matrix {
+    type Output = Matrix;
+
+    fn neg(self) -> Self::Output {
+        Self::new(-self.m11, -self.m12, -self.m13, -self.m14,
+                  -self.m21, -self.m22, -self.m23, -self.m24,
+                  -self.m31, -self.m32, -self.m33, -self.m34,
+                  -self.m41, -self.m42, -self.m43, -self.m44)
+    }
+}
+
+impl<T: Transform> std::ops::Mul<T> for Matrix {
+    type Output = T;
+
+    fn mul(self, rhs: T) -> Self::Output {
+        T::transform(&rhs, &self)
     }
 }
 
@@ -138,31 +177,10 @@ macro_rules! op_impl {
             }
         }
     };
-    (transform, $tt:ident, $tm:ident) => {
-        impl std::ops::Mul<$tt> for Matrix {
-            type Output = $tt;
-
-            fn mul(self, rhs: $tt) -> Self::Output {
-                self.$tm(&rhs)
-            }
-        }
-    }
 }
 
 op_impl!(matrix, Add, add, AddAssign, add_assign, +);
 op_impl!(matrix, Sub, sub, SubAssign, sub_assign, -);
 op_impl!(uniform, commutative, f32, Mul, mul, MulAssign, mul_assign, *);
 op_impl!(uniform, f32, Div, div, DivAssign, div_assign, /);
-op_impl!(transform, Matrix, transform);
-op_impl!(transform, Vec3f, transform_vec3f);
 
-impl std::ops::Neg for Matrix {
-    type Output = Matrix;
-
-    fn neg(self) -> Self::Output {
-        Self::new(-self.m11, -self.m12, -self.m13, -self.m14,
-                  -self.m21, -self.m22, -self.m23, -self.m24,
-                  -self.m31, -self.m32, -self.m33, -self.m34,
-                  -self.m41, -self.m42, -self.m43, -self.m44)
-    }
-}
