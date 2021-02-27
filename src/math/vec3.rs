@@ -8,8 +8,11 @@ pub struct Vec3f {
     pub z: f32,
 }
 
-// Operations
 impl Vec3f {
+    // 
+    // Constructors
+    //
+    
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
@@ -22,6 +25,10 @@ impl Vec3f {
         Self::new(u, u, u)
     }
 
+    //
+    // Defaults
+    // 
+
     pub fn zero() -> Self {
         Self::from_uniform(0.0)
     }
@@ -30,10 +37,62 @@ impl Vec3f {
         Self::from_uniform(1.0)
     }
 
-    pub fn left() -> Self {
+    pub fn negative_x() -> Self {
+        Self::new(-1.0, 0.0, 0.0)
+    }
+
+    pub fn positive_x() -> Self {
         Self::new(1.0, 0.0, 0.0)
     }
 
+    pub fn negative_y() -> Self {
+        Self::new(0.0, -1.0, 0.0)
+    }
+
+    pub fn positive_y() -> Self {
+        Self::new(0.0, 1.0, 0.0)
+    }
+
+    pub fn negative_z() -> Self {
+        Self::new(0.0, 0.0, -1.0)
+    }
+
+    pub fn positive_z() -> Self {
+        Self::new(0.0, 0.0, 1.0)
+    }
+
+    //
+    // Directions
+    // 
+    
+    pub fn left() -> Self {
+        Self::negative_x()
+    }
+
+    pub fn right() -> Self {
+        Self::positive_x()
+    }
+
+    pub fn bottom() -> Self {
+        Self::negative_y()
+    }
+
+    pub fn top() -> Self {
+        Self::positive_y()
+    }
+
+    pub fn backward() -> Self {
+        Self::negative_z()
+    }
+
+    pub fn forward() -> Self {
+        Self::positive_z()
+    }
+
+    //
+    // Operations
+    //
+    
     pub fn dot(&self, other: &Self) -> f32 {
         (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
     }
