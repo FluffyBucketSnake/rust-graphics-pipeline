@@ -13,28 +13,31 @@ pub fn build_line_circle(dtheta: f32, colors: &(Color, Color)) -> Vec<(Vertex, V
     result
 }
 
-pub fn build_line_cube() -> Vec<(Vertex, Vertex)> {
-    let p1 = Vertex::new(Vec3f::from_uniform(-0.5), Color::WHITE);
-    let p2 = Vertex::new(Vec3f::new(-0.5, -0.5, 0.5), Color::WHITE);
-    let p3 = Vertex::new(Vec3f::new(-0.5, 0.5, -0.5), Color::WHITE);
-    let p4 = Vertex::new(Vec3f::new(-0.5, 0.5, 0.5), Color::WHITE);
-    let p5 = Vertex::new(Vec3f::new(0.5, -0.5, -0.5), Color::WHITE);
-    let p6 = Vertex::new(Vec3f::new(0.5, -0.5, 0.5), Color::WHITE);
-    let p7 = Vertex::new(Vec3f::new(0.5, 0.5, -0.5), Color::WHITE);
-    let p8 = Vertex::new(Vec3f::from_uniform(0.5), Color::WHITE);
+pub fn build_line_cube() -> (Vec<Vertex>, Vec<(usize, usize)>) {
+    let mut vertices = Vec::new();
 
-    let mut result = Vec::new();
-    result.push((p1,p2));
-    result.push((p2,p4));
-    result.push((p4,p3));
-    result.push((p3,p1));
-    result.push((p5,p6));
-    result.push((p6,p8));
-    result.push((p8,p7));
-    result.push((p7,p5));
-    result.push((p1,p5));
-    result.push((p2,p6));
-    result.push((p3,p7));
-    result.push((p4,p8));
-    result
+    vertices.push(Vertex::new(Vec3f::from_uniform(-0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::new(-0.5, -0.5, 0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::new(-0.5, 0.5, -0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::new(-0.5, 0.5, 0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::new(0.5, -0.5, -0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::new(0.5, -0.5, 0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::new(0.5, 0.5, -0.5), Color::WHITE));
+    vertices.push(Vertex::new(Vec3f::from_uniform(0.5), Color::WHITE));
+
+    let mut indexes = Vec::new();
+    indexes.push((0, 1));
+    indexes.push((1, 3));
+    indexes.push((3, 2));
+    indexes.push((2, 0));
+    indexes.push((4, 5));
+    indexes.push((5, 7));
+    indexes.push((7, 6));
+    indexes.push((6, 4));
+    indexes.push((0, 4));
+    indexes.push((1, 5));
+    indexes.push((2, 6));
+    indexes.push((3, 7));
+
+    (vertices, indexes)
 }

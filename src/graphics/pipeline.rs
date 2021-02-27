@@ -27,22 +27,47 @@ impl Pipeline {
     pub fn set_worldviewproj(&mut self, value: Matrix) {
         self.worldviewproj = value;
     }
+
+    fn vertex_processor(&self, vertex: &mut Vertex) {
+        // Convert world coordinates to clip space.
+        vertex.position = self.worldviewproj * vertex.position;
+
+        // Perspective division.
+        vertex.position /= -vertex.position.z;
+    }
+}
+
+impl<B: BitmapOutput> GPU<(&[Vertex],&[(usize, usize)]), B> for Pipeline {
+    fn draw(&self, (vertices, primitives): (&[Vertex],&[(usize, usize)]), target: &mut B) {
+        // Copy input data.
+        let mut vertices = vertices.to_vec();
+        let mut primitives = primitives.to_vec();
+
+        // Vertex stage.
+        for vertex in vertices.iter_mut() {
+            self.vertex_processor(vertex);
+        }
+
+        // Primitive stage.
+        for primitive in primitives {
+            // Raster primitive.
+            self.rasterizer.draw((vertices[primitive.0], vertices[primitive.1]), target);
+        }
+    }
 }
 
 impl<B: BitmapOutput> GPU<&[(Vertex, Vertex)], B> for Pipeline {
     fn draw(&self, primitives: &[(Vertex, Vertex)], target: &mut B) {
         for primitive in primitives {
+            // Copy input data.
             let (mut start, mut end) = primitive;
 
-            // Convert world coordinates to clip space.
-            start.position = self.worldviewproj * start.position;
-            end.position = self.worldviewproj * end.position;
+            // Vertex stage.
+            self.vertex_processor(&mut start);
+            self.vertex_processor(&mut end);
 
-            // Convert coordinates to normalized device coordinates.
-            start.position /= -start.position.z;
-            end.position /= -end.position.z;
-
-            // Raster primitive.
+            // Primitive stage.
+            // Render primitive.
             self.rasterizer.draw((start, end), target);
         }
     }
