@@ -19,11 +19,15 @@ fn main() {
     let framework = Framework::init();
     let mut output = framework.create_video_output();
     let mut pipeline = Pipeline::new();
+    pipeline.set_front_face(crate::graphics::WindingOrder::CounterClockwise);
 
     // Build model.
-    let model = models::build_line_cube();
+    let model = models::build_triangle_cube();
     let world = Matrix::translate(0.0, 0.0, 2.0);
-    pipeline.set_worldviewproj(world);
+
+    // Keep track of rotation.
+    let mut theta1 = 0.0f32;
+    let mut theta2 = 0.0f32;
 
     // Run simulation.
     framework.run(|| { 
@@ -31,8 +35,14 @@ fn main() {
 
         output.clear(sdl2::pixels::Color::BLACK);
 
+        let rotation = Matrix::rotate_x(theta2) * Matrix::rotate_y(theta1);
+        pipeline.set_worldviewproj(world * rotation);
+
         pipeline.draw((&model.0[..], &model.1[..]), output);
         
         output.present();
+
+        theta1 += 0.002 * std::f32::consts::PI;
+        theta2 += 0.003 * std::f32::consts::PI;
     });
 }

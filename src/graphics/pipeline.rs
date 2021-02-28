@@ -1,4 +1,4 @@
-use crate::math::Matrix;
+use crate::math::{Matrix, Transform};
 use crate::vertex::Vertex;
 use super::{BitmapOutput, GPU, primitives::WindingOrder};
 use super::primitives::{Line, Triangle};
@@ -9,6 +9,7 @@ use super::raster::Rasterizer;
 /// It accepts a collection of primitives as input, while output a raster render of the scene
 /// into the specified `BitmapOutput`.
 pub struct Pipeline {
+    front_face: WindingOrder,
     rasterizer: Rasterizer,
     worldviewproj: Matrix,
 }
@@ -16,9 +17,18 @@ pub struct Pipeline {
 impl Pipeline {
     pub fn new() -> Self {
         Self {
+            front_face: WindingOrder::Both,
             rasterizer: Rasterizer::new(),
             worldviewproj: Matrix::identity(),
         }
+    }
+
+    pub fn front_face(&self) -> WindingOrder {
+        self.front_face
+    }
+
+    pub fn set_front_face(&mut self, order: WindingOrder) {
+        self.front_face = order;
     }
 
     pub fn worldviewproj(&self) -> Matrix {
@@ -34,7 +44,21 @@ impl Pipeline {
         vertex.position = self.worldviewproj * vertex.position;
 
         // Perspective division.
-        vertex.position /= -vertex.position.z;
+        vertex.position /= vertex.position.z;
+    }
+
+    fn cull_face(&self, face: &Triangle<Vertex>) -> bool {
+        match face.order() {
+            WindingOrder::Clockwise => {
+                if self.front_face == WindingOrder::CounterClockwise { true }
+                else { false }
+            },
+            WindingOrder::CounterClockwise => {
+                if self.front_face == WindingOrder::Clockwise { true }
+                else { false }
+            },
+            WindingOrder::Both => { false },
+        }
     }
 }
 
@@ -86,18 +110,15 @@ impl<B: BitmapOutput> GPU<(&[Vertex],&[Triangle<usize>]), B> for Pipeline {
         }
 
         // Primitive stage.
+        let mut i = 0usize;
         for primitive in primitives {
             // Dereference triangle vertices.
             let primitive = Triangle(vertices[primitive.0], vertices[primitive.1], vertices[primitive.2]);
 
             // Back-face culling.
-            match primitive.order() {
-                WindingOrder::Clockwise => {
-                    // This face has been culled.
-                    continue;
-                },
-                WindingOrder::CounterClockwise
-                | WindingOrder::Both => {},
+            if self.cull_face(&primitive) {
+                // This primitive has beem culled.
+                continue;
             }
 
             // Raster primitive.
@@ -105,6 +126,7 @@ impl<B: BitmapOutput> GPU<(&[Vertex],&[Triangle<usize>]), B> for Pipeline {
             self.rasterizer.draw(Line(primitive.0, primitive.1), target);
             self.rasterizer.draw(Line(primitive.1, primitive.2), target);
             self.rasterizer.draw(Line(primitive.2, primitive.0), target);
+            i += 1;
         }
     }
 }
@@ -122,13 +144,9 @@ impl<B: BitmapOutput> GPU<&[Triangle<Vertex>], B> for Pipeline {
 
             // Primitive stage.
             // Back-face culling.
-            match Triangle(e0, e1, e2).order() {
-                WindingOrder::Clockwise => {
-                    // This face has been culled.
-                    continue;
-                },
-                WindingOrder::CounterClockwise
-                | WindingOrder::Both => {},
+            if self.cull_face(&primitive) {
+                // This primitive has beem culled.
+                continue;
             }
 
             // Raster primitive.
