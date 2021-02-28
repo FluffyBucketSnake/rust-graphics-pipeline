@@ -284,15 +284,13 @@ impl Neg for Vec3f {
 
 impl Transform for Vec3f {
     fn transform(&self, matrix: &Matrix) -> Self {
-        let mut result = *self;
-        result.transform_self(matrix);
-        result
+        Vec3f::new((matrix.m11 * self.x) + (matrix.m12 * self.y) + (matrix.m13 * self.z) + matrix.m14,
+                   (matrix.m21 * self.x) + (matrix.m22 * self.y) + (matrix.m23 * self.z) + matrix.m24,
+                   (matrix.m31 * self.x) + (matrix.m32 * self.y) + (matrix.m33 * self.z) + matrix.m34)
     }
 
     fn transform_self(&mut self, matrix: &Matrix) {
-        self.x = (self.x * matrix.m11) + (self.y * matrix.m12) + (self.z * matrix.m13) + matrix.m14;
-        self.y = (self.x * matrix.m21) + (self.y * matrix.m22) + (self.z * matrix.m23) + matrix.m24;
-        self.z = (self.x * matrix.m31) + (self.y * matrix.m32) + (self.z * matrix.m33) + matrix.m34;
+        *self = self.transform(matrix);
     }
 }
 

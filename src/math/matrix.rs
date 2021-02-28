@@ -9,7 +9,7 @@
 ///
 /// assert_eq!(vector + 1.0, vector * transform);
 /// ```
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Matrix {
     pub m11: f32, pub m12: f32, pub m13: f32, pub m14: f32,
     pub m21: f32, pub m22: f32, pub m23: f32, pub m24: f32,
@@ -90,43 +90,28 @@ pub trait Transform {
 
 impl Transform for Matrix {
     /// Concatenates matrix transformations together.
-    fn transform(&self, rhs: &Self) -> Self {
-        Self::new((self.m11 * rhs.m11) + (self.m12 * rhs.m21) + (self.m13 * rhs.m31) + (self.m14 * rhs.m41),
-                  (self.m11 * rhs.m12) + (self.m12 * rhs.m22) + (self.m13 * rhs.m32) + (self.m14 * rhs.m42),
-                  (self.m11 * rhs.m13) + (self.m12 * rhs.m23) + (self.m13 * rhs.m33) + (self.m14 * rhs.m43),
-                  (self.m11 * rhs.m14) + (self.m12 * rhs.m24) + (self.m13 * rhs.m34) + (self.m14 * rhs.m44),
-                  (self.m21 * rhs.m11) + (self.m22 * rhs.m21) + (self.m23 * rhs.m31) + (self.m24 * rhs.m41),
-                  (self.m21 * rhs.m12) + (self.m22 * rhs.m22) + (self.m23 * rhs.m32) + (self.m24 * rhs.m42),
-                  (self.m21 * rhs.m13) + (self.m22 * rhs.m23) + (self.m23 * rhs.m33) + (self.m24 * rhs.m43),
-                  (self.m21 * rhs.m14) + (self.m22 * rhs.m24) + (self.m23 * rhs.m34) + (self.m24 * rhs.m44),
-                  (self.m31 * rhs.m11) + (self.m32 * rhs.m21) + (self.m33 * rhs.m31) + (self.m34 * rhs.m41),
-                  (self.m31 * rhs.m12) + (self.m32 * rhs.m22) + (self.m33 * rhs.m32) + (self.m34 * rhs.m42),
-                  (self.m31 * rhs.m13) + (self.m32 * rhs.m23) + (self.m33 * rhs.m33) + (self.m34 * rhs.m43),
-                  (self.m31 * rhs.m14) + (self.m32 * rhs.m24) + (self.m33 * rhs.m34) + (self.m34 * rhs.m44),
-                  (self.m41 * rhs.m11) + (self.m42 * rhs.m21) + (self.m43 * rhs.m31) + (self.m44 * rhs.m41),
-                  (self.m41 * rhs.m12) + (self.m42 * rhs.m22) + (self.m43 * rhs.m32) + (self.m44 * rhs.m42),
-                  (self.m41 * rhs.m13) + (self.m42 * rhs.m23) + (self.m43 * rhs.m33) + (self.m44 * rhs.m43),
-                  (self.m41 * rhs.m14) + (self.m42 * rhs.m24) + (self.m43 * rhs.m34) + (self.m44 * rhs.m44))
+    fn transform(&self, matrix: &Self) -> Self {
+        Matrix::new((matrix.m11 * self.m11) + (matrix.m12 * self.m21) + (matrix.m13 * self.m31) + (matrix.m14 * self.m41),
+                    (matrix.m11 * self.m12) + (matrix.m12 * self.m22) + (matrix.m13 * self.m32) + (matrix.m14 * self.m42),
+                    (matrix.m11 * self.m13) + (matrix.m12 * self.m23) + (matrix.m13 * self.m33) + (matrix.m14 * self.m43),
+                    (matrix.m11 * self.m14) + (matrix.m12 * self.m24) + (matrix.m13 * self.m34) + (matrix.m14 * self.m44),
+                    (matrix.m21 * self.m11) + (matrix.m22 * self.m21) + (matrix.m23 * self.m31) + (matrix.m24 * self.m41),
+                    (matrix.m21 * self.m12) + (matrix.m22 * self.m22) + (matrix.m23 * self.m32) + (matrix.m24 * self.m42),
+                    (matrix.m21 * self.m13) + (matrix.m22 * self.m23) + (matrix.m23 * self.m33) + (matrix.m24 * self.m43),
+                    (matrix.m21 * self.m14) + (matrix.m22 * self.m24) + (matrix.m23 * self.m34) + (matrix.m24 * self.m44),
+                    (matrix.m31 * self.m11) + (matrix.m32 * self.m21) + (matrix.m33 * self.m31) + (matrix.m34 * self.m41),
+                    (matrix.m31 * self.m12) + (matrix.m32 * self.m22) + (matrix.m33 * self.m32) + (matrix.m34 * self.m42),
+                    (matrix.m31 * self.m13) + (matrix.m32 * self.m23) + (matrix.m33 * self.m33) + (matrix.m34 * self.m43),
+                    (matrix.m31 * self.m14) + (matrix.m32 * self.m24) + (matrix.m33 * self.m34) + (matrix.m34 * self.m44),
+                    (matrix.m41 * self.m11) + (matrix.m42 * self.m21) + (matrix.m43 * self.m31) + (matrix.m44 * self.m41),
+                    (matrix.m41 * self.m12) + (matrix.m42 * self.m22) + (matrix.m43 * self.m32) + (matrix.m44 * self.m42),
+                    (matrix.m41 * self.m13) + (matrix.m42 * self.m23) + (matrix.m43 * self.m33) + (matrix.m44 * self.m43),
+                    (matrix.m41 * self.m14) + (matrix.m42 * self.m24) + (matrix.m43 * self.m34) + (matrix.m44 * self.m44))
     }
 
     /// Concatenates matrix transformations into itself.
     fn transform_self(&mut self, matrix: &Matrix) {
-        self.m11 = (self.m11 * matrix.m11) + (self.m12 * matrix.m21) + (self.m13 * matrix.m31) + (self.m14 * matrix.m41);
-        self.m12 = (self.m11 * matrix.m12) + (self.m12 * matrix.m22) + (self.m13 * matrix.m32) + (self.m14 * matrix.m42);
-        self.m13 = (self.m11 * matrix.m13) + (self.m12 * matrix.m23) + (self.m13 * matrix.m33) + (self.m14 * matrix.m43);
-        self.m14 = (self.m11 * matrix.m14) + (self.m12 * matrix.m24) + (self.m13 * matrix.m34) + (self.m14 * matrix.m44);
-        self.m21 = (self.m21 * matrix.m11) + (self.m22 * matrix.m21) + (self.m23 * matrix.m31) + (self.m24 * matrix.m41);
-        self.m22 = (self.m21 * matrix.m12) + (self.m22 * matrix.m22) + (self.m23 * matrix.m32) + (self.m24 * matrix.m42);
-        self.m23 = (self.m21 * matrix.m13) + (self.m22 * matrix.m23) + (self.m23 * matrix.m33) + (self.m24 * matrix.m43);
-        self.m24 = (self.m21 * matrix.m14) + (self.m22 * matrix.m24) + (self.m23 * matrix.m34) + (self.m24 * matrix.m44);
-        self.m31 = (self.m31 * matrix.m11) + (self.m32 * matrix.m21) + (self.m33 * matrix.m31) + (self.m34 * matrix.m41);
-        self.m32 = (self.m31 * matrix.m12) + (self.m32 * matrix.m22) + (self.m33 * matrix.m32) + (self.m34 * matrix.m42);
-        self.m33 = (self.m31 * matrix.m13) + (self.m32 * matrix.m23) + (self.m33 * matrix.m33) + (self.m34 * matrix.m43);
-        self.m34 = (self.m31 * matrix.m14) + (self.m32 * matrix.m24) + (self.m33 * matrix.m34) + (self.m34 * matrix.m44);
-        self.m41 = (self.m41 * matrix.m11) + (self.m42 * matrix.m21) + (self.m43 * matrix.m31) + (self.m44 * matrix.m41);
-        self.m42 = (self.m41 * matrix.m12) + (self.m42 * matrix.m22) + (self.m43 * matrix.m32) + (self.m44 * matrix.m42);
-        self.m43 = (self.m41 * matrix.m13) + (self.m42 * matrix.m23) + (self.m43 * matrix.m33) + (self.m44 * matrix.m43);
-        self.m44 = (self.m41 * matrix.m14) + (self.m42 * matrix.m24) + (self.m43 * matrix.m34) + (self.m44 * matrix.m44);
+        *self = self.transform(matrix);
     }
 }
 
@@ -145,7 +130,7 @@ impl<T: Transform> std::ops::Mul<T> for Matrix {
     type Output = T;
 
     fn mul(self, rhs: T) -> Self::Output {
-        T::transform(&rhs, &self)
+        rhs.transform(&self)
     }
 }
 

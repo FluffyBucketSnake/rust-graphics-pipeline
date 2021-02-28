@@ -4,4 +4,4 @@ mod matrix;
 
 pub use vec2::Vec2f;
 pub use vec3::Vec3f;
-pub use matrix::Matrix;
+pub use matrix::{Matrix, Transform};
