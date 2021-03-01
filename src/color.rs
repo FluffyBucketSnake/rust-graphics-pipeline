@@ -13,5 +13,5 @@ pub fn mix(color1: Color, color2: Color, amount: f32) -> Color {
 }
 
 fn mix_channel(value1: u8, value2: u8, amount: f32) -> u8 {
-    (((value1 as f32) * amount) + ((value2 as f32) * (1.0 - amount))) as u8
+    (((value2 as f32) * amount) + ((value1 as f32) * (1.0 - amount))) as u8
 }

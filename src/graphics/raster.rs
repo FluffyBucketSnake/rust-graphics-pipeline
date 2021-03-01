@@ -54,7 +54,7 @@ where B: BitmapOutput {
         let Vec3f { mut x, mut y, z: _ } = start.position;
         let mut i: f32 = 0.0;
         while i < step {
-            target.put_pixel((x as u32, y as u32), mix(start.color, end.color, (step - 1.0 - i) / f32::max(step - 1.0, 1.0)));
+            target.put_pixel((x as u32, y as u32), mix(start.color, end.color, i / f32::max(step - 1.0, 1.0)));
             x += xi;
             y += yi;
             i += 1.0;
