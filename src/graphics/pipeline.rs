@@ -1,4 +1,4 @@
-use crate::math::{Matrix, Transform};
+use crate::math::{Matrix, Transform, Vec4f};
 use crate::vertex::Vertex;
 use super::{BitmapOutput, GPU, primitives::WindingOrder};
 use super::primitives::{Line, Triangle};
@@ -40,11 +40,26 @@ impl Pipeline {
     }
 
     fn vertex_processor(&self, vertex: &mut Vertex) {
+        // Convert position into a Vec4f.
+        let Vertex { position, .. } = vertex;
+        let mut position = Vec4f::from_point(*position);
+
         // Convert world coordinates to clip space.
-        vertex.position = self.worldviewproj * vertex.position;
+        position.transform_self(&self.worldviewproj);
+
+        // TODO: Create a proper perspective matrix function.
+        // Apply a perspective transformation.
+        let proj = Matrix::new(1.0, 0.0,  0.0, 0.0,
+                               0.0, 1.0,  0.0, 0.0,
+                               0.0, 0.0, -1.0, 0.0,
+                               0.0, 0.0, -1.0, 0.0);
+        position.transform_self(&proj);
 
         // Perspective division.
-        vertex.position /= vertex.position.z;
+        position.homogenize_self();
+        
+        // Extract the xyz coordinates back into the vertex data.
+        vertex.position = position.xyz();
     }
 
     fn cull_face(&self, face: &Triangle<Vertex>) -> bool {
