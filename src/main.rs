@@ -12,7 +12,7 @@ mod vertex;
 mod tests;
 
 use crate::framework::Framework;
-use crate::math::Matrix;
+use crate::math::{Quaternion, Matrix};
 use crate::graphics::*;
 
 fn main() {
@@ -35,7 +35,7 @@ fn main() {
 
         output.clear(sdl2::pixels::Color::BLACK);
 
-        let rotation = Matrix::rotate_x(theta2) * Matrix::rotate_y(theta1);
+        let rotation: Matrix = Quaternion::rotation(crate::math::Vec3f::positive_x(), theta1).into();
         pipeline.set_worldviewproj(world * rotation);
 
         pipeline.draw((&model.0[..], &model.1[..]), output);
