@@ -108,6 +108,14 @@ impl Quaternion {
     pub fn inverse(&self) -> Quaternion {
         self.conjulgate() / self.norm_squared()
     }
+
+    /// Calculates the spherical linear interpolation between two quaternions.
+    pub fn slerp(&self, other: &Quaternion, t: f32) -> Quaternion {
+        let theta = ((self.x * other.x) + (self.y * other.y) + (self.z * other.z) + (self.w * other.w)).acos();
+        let lq = (self * (theta * (1.0 - t)).sin()) / theta.sin();
+        let lr = (other * (theta * t).sin()) / theta.sin();
+        lq + lr
+    }
 }
 
 macro_rules! forward_bin_ops {
