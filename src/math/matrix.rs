@@ -80,6 +80,32 @@ impl Matrix {
                   0.0, 0.0, 1.0,   z,
                   0.0, 0.0, 0.0, 1.0)
     }
+
+    /// Construct a matrix for orthographic projection.
+    pub fn ortho(right: f32, left: f32, top: f32, bottom: f32, far: f32, near: f32) -> Self {
+        Self::new(2.0 / (right - left),                  0.0,                 0.0, -(right + left) / (right - left),
+                                   0.0, 2.0 / (top - bottom),                 0.0, -(top + bottom) / (top - bottom),
+                                   0.0,                  0.0, -2.0 / (far - near),     -(far + near) / (far - near),
+                                   0.0,                  0.0,                 0.0,                              1.0) 
+
+    }
+
+    /// Construct a matrix for perspective projection.
+    pub fn persp(right: f32, left: f32, top: f32, bottom: f32, far: f32, near: f32) -> Self {
+        Self::new((2.0 * near) / (right - left),                           0.0, (right + left) / (right - left),                                0.0,
+                                            0.0, (2.0 * near) / (top - bottom), (top + bottom) / (top - bottom),                                0.0,
+                                            0.0,                           0.0,    -(far + near) / (far - near), (-2.0 * far * near) / (far - near),
+                                            0.0,                           0.0,                            -1.0,                                0.0)
+    }
+
+    /// Construct a matrix for perspective projection.
+    pub fn persp_aspect(aspect: f32, vfov: f32, far: f32, near: f32) -> Self {
+        let c = 1.0 / (vfov / 2.0).tan();
+        Self::new(c / aspect, 0.0,                          0.0,                                0.0,
+                         0.0,   c,                          0.0,                                0.0,
+                         0.0, 0.0, -(far + near) / (far - near), (-2.0 * far * near) / (far - near),
+                         0.0, 0.0,                         -1.0,                                0.0)
+    }
 }
 
 /// Types that supports matrix transformations.

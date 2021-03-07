@@ -47,14 +47,6 @@ impl Pipeline {
         // Convert world coordinates to clip space.
         position.transform_self(&self.worldviewproj);
 
-        // TODO: Create a proper perspective matrix function.
-        // Apply a perspective transformation.
-        let proj = Matrix::new(1.0, 0.0,  0.0, 0.0,
-                               0.0, 1.0,  0.0, 0.0,
-                               0.0, 0.0, -1.0, 0.0,
-                               0.0, 0.0, -1.0, 0.0);
-        position.transform_self(&proj);
-
         // Perspective division.
         position.homogenize_self();
         

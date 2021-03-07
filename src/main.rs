@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate bitflags;
 extern crate sdl2;
 
 mod color;
@@ -23,7 +25,7 @@ fn main() {
 
     // Build model.
     let model = models::build_triangle_cube();
-    let world = Matrix::translate(0.0, 0.0, 2.0);
+    let worldproj = Matrix::persp_aspect(1.0, std::f32::consts::FRAC_PI_2, 100.0, 1.0) * Matrix::translate(0.0, 0.0, -2.0);
 
     // Keep track of rotation.
     let mut theta1 = 0.0f32;
@@ -35,8 +37,10 @@ fn main() {
 
         output.clear(sdl2::pixels::Color::BLACK);
 
-        let rotation: Matrix = Quaternion::rotation(crate::math::Vec3f::positive_x(), theta1).into();
-        pipeline.set_worldviewproj(world * rotation);
+        let q = Quaternion::rotation(crate::math::Vec3f::positive_x(), theta1);
+        let r = Quaternion::rotation(crate::math::Vec3f::positive_y(), theta1);
+        let rotation: Matrix = q.slerp(&r, theta2.cos()).into();
+        pipeline.set_worldviewproj(worldproj * rotation);
 
         pipeline.draw((&model.0[..], &model.1[..]), output);
         
