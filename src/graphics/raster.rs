@@ -25,12 +25,14 @@ where B: BitmapOutput {
         let Line(mut start, mut end) = line;
         
         // Clip lines out side the window.
-        let line_xy = (start.position.xy(), end.position.xy());
-        if let Some(line_xy) = clip_line(line_xy) {
-            start.position.x = line_xy.0.x;
-            start.position.y = line_xy.0.y;
-            end.position.x = line_xy.1.x;
-            end.position.y = line_xy.1.y;
+        let line_xyz = (start.position, end.position);
+        if let Some(line_xyz) = clip_line(line_xyz) {
+            start.position.x = line_xyz.0.x;
+            start.position.y = line_xyz.0.y;
+            start.position.z = line_xyz.0.z;
+            end.position.x = line_xyz.1.x;
+            end.position.y = line_xyz.1.y;
+            end.position.z = line_xyz.1.z;
         }
         else {
             // Line has been completely clipped out.
