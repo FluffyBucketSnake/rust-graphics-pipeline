@@ -14,7 +14,7 @@ mod vertex;
 mod tests;
 
 use crate::framework::Framework;
-use crate::math::{Quaternion, Matrix};
+use crate::math::{Quaternion, Matrix, Vec3f};
 use crate::graphics::*;
 
 fn main() {
@@ -25,7 +25,9 @@ fn main() {
 
     // Build model.
     let model = models::build_triangle_cube();
-    let worldproj = Matrix::persp_aspect(1.0, std::f32::consts::FRAC_PI_2, 100.0, 1.0) * Matrix::translate(0.0, 0.0, -2.0);
+    let worldviewproj = Matrix::persp_aspect(1.0, std::f32::consts::FRAC_PI_2, 100.0, 0.1)
+                        * Matrix::camera(Vec3f::zero(), Vec3f::positive_y(), Vec3f::positive_z())
+                        * Matrix::translate(0.0, 0.0, 4.0);
 
     // Keep track of rotation.
     let mut theta1 = 0.0f32;
@@ -40,7 +42,7 @@ fn main() {
         let q = Quaternion::rotation(crate::math::Vec3f::positive_x(), theta1);
         let r = Quaternion::rotation(crate::math::Vec3f::positive_y(), theta1);
         let rotation: Matrix = q.slerp(&r, theta2.cos()).into();
-        pipeline.set_worldviewproj(worldproj * rotation);
+        pipeline.set_worldviewproj(worldviewproj * rotation);
 
         pipeline.draw((&model.0[..], &model.1[..]), output);
         

@@ -136,6 +136,18 @@ impl Vec3f {
     pub fn length(&self) -> f32 {
         self.length_squared().sqrt()
     }
+
+    /// Normalizes this vector.
+    pub fn normalize_self(&mut self) {
+        *self /= self.length();
+    }
+
+    /// Returns a vector with the normalized values from this vector.
+    pub fn normalize(&self) -> Vec3f {
+        let mut result = *self;
+        result.normalize_self();
+        result
+    }
 }
 
 macro_rules! op_impl {

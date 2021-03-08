@@ -1,3 +1,5 @@
+use super::vec3::Vec3f;
+
 /// Represents a right-handed 4x4 matrix, which can be used to apply transformation to vectors.
 ///
 /// # Examples
@@ -79,6 +81,17 @@ impl Matrix {
                   0.0, 1.0, 0.0,   y,
                   0.0, 0.0, 1.0,   z,
                   0.0, 0.0, 0.0, 1.0)
+    }
+
+    /// Constructs a matrix for a view transformation.
+    pub fn camera(position: Vec3f, up: Vec3f, target: Vec3f) -> Self {
+        let v = (position - target).normalize();
+        let r = -(up.cross(&v).normalize());
+        let u = v.cross(&r);
+        Self::new(r.x, r.y, r.z, -target.dot(&r),
+                  u.x, u.y, u.z, -target.dot(&u),
+                  v.x, v.y, v.z, -target.dot(&v),
+                  0.0, 0.0, 0.0,             1.0)
     }
 
     /// Construct a matrix for orthographic projection.
