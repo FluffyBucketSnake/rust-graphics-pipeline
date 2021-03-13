@@ -1,5 +1,4 @@
 use crate::graphics::{Line, Triangle};
-use crate::math::{Vec2f, Vec3f};
 use crate::vertex::Vertex;
 use sdl2::pixels::Color;
 
@@ -7,8 +6,8 @@ pub fn build_line_circle(dtheta: f32, colors: &(Color, Color)) -> Vec<Line<Verte
     let mut result = Vec::new();
     let mut theta = 0.0f32;
     while theta < 2.0 * std::f32::consts::PI {
-        result.push(Line(Vertex::new(Vec3f::zero(), colors.0),
-                         Vertex::new(Vec3f::from_vec2(Vec2f::from_direction(theta), 1.0), colors.1)));
+        result.push(Line(Vertex::new(0.0, 0.0, 0.0, colors.0),
+                         Vertex::new(f32::cos(theta), f32::sin(theta), 0.0, colors.1)));
         theta += dtheta;
     }
     result
@@ -17,14 +16,14 @@ pub fn build_line_circle(dtheta: f32, colors: &(Color, Color)) -> Vec<Line<Verte
 pub fn build_line_cube() -> (Vec<Vertex>, Vec<Line<usize>>) {
     let mut vertices = Vec::new();
 
-    vertices.push(Vertex::new(Vec3f::from_uniform(-0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::new(-0.5, -0.5, 0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::new(-0.5, 0.5, -0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::new(-0.5, 0.5, 0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::new(0.5, -0.5, -0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::new(0.5, -0.5, 0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::new(0.5, 0.5, -0.5), Color::WHITE));
-    vertices.push(Vertex::new(Vec3f::from_uniform(0.5), Color::WHITE));
+    vertices.push(Vertex::new(-0.5, -0.5, -0.5, Color::WHITE));
+    vertices.push(Vertex::new(-0.5, -0.5,  0.5, Color::WHITE));
+    vertices.push(Vertex::new(-0.5,  0.5, -0.5, Color::WHITE));
+    vertices.push(Vertex::new(-0.5,  0.5,  0.5, Color::WHITE));
+    vertices.push(Vertex::new( 0.5, -0.5, -0.5, Color::WHITE));
+    vertices.push(Vertex::new( 0.5, -0.5,  0.5, Color::WHITE));
+    vertices.push(Vertex::new( 0.5,  0.5, -0.5, Color::WHITE));
+    vertices.push(Vertex::new( 0.5,  0.5,  0.5, Color::WHITE));
 
     let mut indexes = Vec::new();
     indexes.push(Line(0, 1));
@@ -47,15 +46,15 @@ pub fn build_triangle_cube() -> (Vec<Vertex>, Vec<Triangle<usize>>) {
     let mut vertices = Vec::new();
 
     // Front
-    vertices.push(Vertex::new(Vec3f::new(-0.5, -0.5, -0.5), Color::RED));
-    vertices.push(Vertex::new(Vec3f::new( 0.5, -0.5, -0.5), Color::BLUE));
-    vertices.push(Vertex::new(Vec3f::new( 0.5,  0.5, -0.5), Color::GREEN));
-    vertices.push(Vertex::new(Vec3f::new(-0.5,  0.5, -0.5), Color::CYAN));
+    vertices.push(Vertex::new(-0.5, -0.5, -0.5, Color::RED));
+    vertices.push(Vertex::new( 0.5, -0.5, -0.5, Color::BLUE));
+    vertices.push(Vertex::new( 0.5,  0.5, -0.5, Color::GREEN));
+    vertices.push(Vertex::new(-0.5,  0.5, -0.5, Color::CYAN));
     // Back
-    vertices.push(Vertex::new(Vec3f::new(-0.5, -0.5, 0.5), Color::YELLOW));
-    vertices.push(Vertex::new(Vec3f::new( 0.5, -0.5, 0.5), Color::MAGENTA));
-    vertices.push(Vertex::new(Vec3f::new( 0.5,  0.5, 0.5), Color::GREY));
-    vertices.push(Vertex::new(Vec3f::new(-0.5,  0.5, 0.5), Color::WHITE));
+    vertices.push(Vertex::new(-0.5, -0.5,  0.5, Color::YELLOW));
+    vertices.push(Vertex::new( 0.5, -0.5,  0.5, Color::MAGENTA));
+    vertices.push(Vertex::new( 0.5,  0.5,  0.5, Color::GREY));
+    vertices.push(Vertex::new(-0.5,  0.5,  0.5, Color::WHITE));
 
     let mut indexes = Vec::new();
     // Front

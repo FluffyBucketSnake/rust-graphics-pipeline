@@ -1,16 +1,16 @@
-use crate::math::Vec3f;
+use cgmath::Point3;
 use sdl2::pixels::Color;
 
 #[derive(Clone, Copy)]
 pub struct Vertex {
-    pub position: Vec3f,
+    pub position: Point3<f32>,
     pub color: Color,
 }
 
 impl Vertex {
-    pub fn new(position: Vec3f, color: Color) -> Vertex {
+    pub fn new(x: f32, y: f32, z: f32, color: Color) -> Vertex {
         Self {
-            position,
+            position: Point3::new(x, y, z),
             color,
         }
     }

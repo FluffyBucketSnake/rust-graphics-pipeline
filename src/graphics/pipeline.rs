@@ -1,4 +1,5 @@
-use crate::math::{Matrix, Transform, Vec4f};
+use cgmath::prelude::*;
+use cgmath::Matrix4;
 use crate::vertex::Vertex;
 use super::{BitmapOutput, GPU, primitives::WindingOrder};
 use super::primitives::{Line, Triangle};
@@ -11,7 +12,7 @@ use super::raster::Rasterizer;
 pub struct Pipeline {
     front_face: WindingOrder,
     rasterizer: Rasterizer,
-    worldviewproj: Matrix,
+    worldviewproj: Matrix4<f32>,
 }
 
 impl Pipeline {
@@ -19,7 +20,7 @@ impl Pipeline {
         Self {
             front_face: WindingOrder::Both,
             rasterizer: Rasterizer::new(),
-            worldviewproj: Matrix::identity(),
+            worldviewproj: Matrix4::from_scale(1.0),
         }
     }
 
@@ -31,27 +32,17 @@ impl Pipeline {
         self.front_face = order;
     }
 
-    pub fn worldviewproj(&self) -> Matrix {
+    pub fn worldviewproj(&self) -> Matrix4<f32> {
         self.worldviewproj
     }
 
-    pub fn set_worldviewproj(&mut self, value: Matrix) {
+    pub fn set_worldviewproj(&mut self, value: Matrix4<f32>) {
         self.worldviewproj = value;
     }
 
     fn vertex_processor(&self, vertex: &mut Vertex) {
-        // Convert position into a Vec4f.
-        let Vertex { position, .. } = vertex;
-        let mut position = Vec4f::from_point(*position);
-
-        // Convert world coordinates to clip space.
-        position.transform_self(&self.worldviewproj);
-
-        // Perspective division.
-        position.homogenize_self();
-        
-        // Extract the xyz coordinates back into the vertex data.
-        vertex.position = position.xyz();
+        // Apply the World-View-Projection to the vertex position.
+        vertex.position = self.worldviewproj.transform_point(vertex.position);
     }
 
     fn cull_face(&self, face: &Triangle<Vertex>) -> bool {

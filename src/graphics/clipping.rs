@@ -1,5 +1,5 @@
 use bitflags::bitflags;
-use crate::math::Vec3f;
+use cgmath::Point3;
 
 bitflags! {
     struct OutCode: u8 {
@@ -20,7 +20,7 @@ const X_MAX: f32 = 1.0;
 const Y_MAX: f32 = 1.0;
 const Z_MAX: f32 = 1.0;
 
-fn compute_outcode(position: Vec3f) -> OutCode {
+fn compute_outcode(position: Point3<f32>) -> OutCode {
     let mut code: OutCode = OutCode::INSIDE;
 
     if position.x < X_MIN {
@@ -45,7 +45,7 @@ fn compute_outcode(position: Vec3f) -> OutCode {
     code
 }
 
-pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
+pub fn clip_line(line: (Point3<f32>, Point3<f32>)) -> Option<(Point3<f32>,Point3<f32>)> {
     let (mut e0, mut e1) = line;
 
     // Calculate where the endpoints are in relation to the clipping rectangle.
@@ -71,7 +71,7 @@ pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
             // Find intersection point.
             let intersection = if code_out.contains(OutCode::TOP) {
                 // Point is above the clipping region.
-                Vec3f {
+                Point3 {
                     x: e0.x + (e1.x - e0.x) * (Y_MAX - e0.y) / (e1.y - e0.y),
                     y: Y_MAX,
                     z: e0.z + (e1.z - e0.z) * (Y_MAX - e0.y) / (e1.y - e0.y),
@@ -79,7 +79,7 @@ pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
             }
             else if code_out.contains(OutCode::BOTTOM) {
                 // Point is bellow the clipping region.
-                Vec3f {
+                Point3 {
                     x: e0.x + (e1.x - e0.x) * (Y_MIN - e0.y) / (e1.y - e0.y),
                     y: Y_MIN,
                     z: e0.z + (e1.z - e0.z) * (Y_MIN - e0.y) / (e1.y - e0.y),
@@ -87,7 +87,7 @@ pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
             }
             else if code_out.contains(OutCode::RIGHT) {
                 // Point is right to the clipping region.
-                Vec3f {
+                Point3 {
                     x: X_MAX,
                     y: e0.y + (e1.y - e0.y) * (X_MAX - e0.x) / (e1.x - e0.x),
                     z: e0.z + (e1.z - e0.z) * (X_MAX - e0.x) / (e1.x - e0.x),
@@ -95,7 +95,7 @@ pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
             }
             else if code_out.contains(OutCode::LEFT) {
                 // Point is left to the clipping region.
-                Vec3f {
+                Point3 {
                     x: X_MIN,
                     y: e0.y + (e1.y - e0.y) * (X_MIN - e0.x) / (e1.x - e0.x),
                     z: e0.z + (e1.z - e0.z) * (X_MIN - e0.x) / (e1.x - e0.x),
@@ -103,7 +103,7 @@ pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
             }
             else if code_out.contains(OutCode::INSIDE) {
                 // Point is in front of the clipping region.
-                Vec3f {
+                Point3 {
                     x: e0.x + (e1.x - e0.x) * (Z_MAX - e0.z) / (e1.z - e0.z),
                     y: e0.y + (e1.y - e0.y) * (Z_MAX - e0.z) / (e1.z - e0.z),
                     z: Z_MAX,
@@ -111,7 +111,7 @@ pub fn clip_line(line: (Vec3f, Vec3f)) -> Option<(Vec3f,Vec3f)> {
             }
             else {
                 // Point is behind the clipping region.
-                Vec3f {
+                Point3 {
                     x: e0.x + (e1.x - e0.x) * (Z_MIN - e0.z) / (e1.z - e0.z),
                     y: e0.y + (e1.y - e0.y) * (Z_MIN - e0.z) / (e1.z - e0.z),
                     z: Z_MIN,

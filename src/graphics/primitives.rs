@@ -1,3 +1,5 @@
+use cgmath::prelude::*;
+use cgmath::Vector3;
 use crate::vertex::Vertex;
 
 #[derive(Clone, Copy)]
@@ -18,10 +20,10 @@ impl Triangle<Vertex> {
         let u = self.1.position - self.0.position;
         let v = self.2.position - self.0.position;
 
-        let p = -self.0.position;
-        let n = crate::math::Vec3f::cross(&u, &v);
+        let p = -self.0.position.to_vec();
+        let n = Vector3::cross(u, v);
 
-        let dot = p.dot(&n);
+        let dot = Vector3::dot(p, n);
         if dot > 0.0 { WindingOrder::CounterClockwise }
         else if dot < 0.0 { WindingOrder::Clockwise }
         else { WindingOrder::Both }

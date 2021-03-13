@@ -1,11 +1,10 @@
-#[macro_use]
 extern crate bitflags;
+extern crate cgmath;
 extern crate sdl2;
 
 mod color;
 mod framework;
 mod graphics;
-mod math;
 mod models;
 mod pipeline;
 mod vertex;
@@ -13,8 +12,8 @@ mod vertex;
 #[cfg(test)]
 mod tests;
 
+use cgmath::{Quaternion, Matrix4, perspective, point3, Rad, vec3, Vector3};
 use crate::framework::Framework;
-use crate::math::{Quaternion, Matrix, Vec3f};
 use crate::graphics::*;
 
 fn main() {
@@ -25,9 +24,9 @@ fn main() {
 
     // Build model.
     let model = models::build_triangle_cube();
-    let worldviewproj = Matrix::persp_aspect(1.0, std::f32::consts::FRAC_PI_2, 100.0, 0.1)
-                        * Matrix::camera(Vec3f::zero(), Vec3f::positive_y(), Vec3f::positive_z())
-                        * Matrix::translate(0.0, 0.0, 4.0);
+    let worldviewproj = perspective(Rad(std::f32::consts::FRAC_PI_2), 1.0, 0.1, 100.0)
+                        * Matrix4::look_to_rh(point3(0.0, 0.0, 0.0), Vector3::unit_z(), Vector3::unit_y())
+                        * Matrix4::from_translation(vec3(0.0, 0.0, 2.0)); 
 
     // Keep track of rotation.
     let mut theta1 = 0.0f32;
@@ -39,9 +38,9 @@ fn main() {
 
         output.clear(sdl2::pixels::Color::BLACK);
 
-        let q = Quaternion::rotation(crate::math::Vec3f::positive_x(), theta1);
-        let r = Quaternion::rotation(crate::math::Vec3f::positive_y(), theta1);
-        let rotation: Matrix = q.slerp(&r, theta2.cos()).into();
+        let q = Quaternion::from_sv(f32::cos(theta1), f32::sin(theta1) * Vector3::unit_x());
+        let r = Quaternion::from_sv(f32::cos(theta1), f32::sin(theta1) * Vector3::unit_y());
+        let rotation: Matrix4<f32> = q.slerp(r, f32::cos(theta2)).into();
         pipeline.set_worldviewproj(worldviewproj * rotation);
 
         pipeline.draw((&model.0[..], &model.1[..]), output);
