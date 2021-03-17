@@ -1,6 +1,8 @@
 use bitflags::bitflags;
 use cgmath::Point3;
 
+// TODO: Use clip space coordinates instead of NDC.
+
 bitflags! {
     struct OutCode: u8 {
         const INSIDE = 0b00000000;
