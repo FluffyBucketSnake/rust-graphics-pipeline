@@ -24,6 +24,10 @@ impl Pipeline {
         }
     }
 
+    pub fn rasterizer(&mut self) -> &mut Rasterizer {
+        &mut self.rasterizer
+    }
+
     pub fn front_face(&self) -> WindingOrder {
         self.front_face
     }
@@ -121,9 +125,7 @@ impl<B: BitmapOutput> GPU<(&[Vertex],&[Triangle<usize>]), B> for Pipeline {
 
             // Raster primitive.
             // Only wireframe mode is active currently.
-            self.rasterizer.draw(Line(primitive.0, primitive.1), target);
-            self.rasterizer.draw(Line(primitive.1, primitive.2), target);
-            self.rasterizer.draw(Line(primitive.2, primitive.0), target);
+            self.rasterizer.draw(primitive, target);
             i += 1;
         }
     }
@@ -148,9 +150,6 @@ impl<B: BitmapOutput> GPU<&[Triangle<Vertex>], B> for Pipeline {
             }
 
             // Raster primitive.
-            self.rasterizer.draw(Line(primitive.0, primitive.1), target);
-            self.rasterizer.draw(Line(primitive.1, primitive.2), target);
-            self.rasterizer.draw(Line(primitive.2, primitive.0), target);
         }
     }
 }
