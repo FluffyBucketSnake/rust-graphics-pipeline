@@ -1,5 +1,7 @@
 use bitflags::bitflags;
 use cgmath::Vector4;
+use crate::vertex::Vertex;
+use super::Line;
 
 // TODO: Use clip space coordinates instead of NDC.
 
@@ -40,17 +42,17 @@ fn compute_outcode(position: Vector4<f32>) -> OutCode {
     code
 }
 
-pub fn clip_line(line: (Vector4<f32>, Vector4<f32>)) -> Option<(Vector4<f32>,Vector4<f32>)> {
-    let (mut e0, mut e1) = line;
+pub fn clip_line(line: Line<Vertex>) -> Option<Line<Vertex>> {
+    let Line(mut e0, mut e1) = line;
 
     // Calculate where the endpoints are in relation to the clipping rectangle.
-    let mut code0 = compute_outcode(line.0);
-    let mut code1 = compute_outcode(line.1);
+    let mut code0 = compute_outcode(e0.position);
+    let mut code1 = compute_outcode(e1.position);
     
     loop {
         if (code0 | code1) == OutCode::INSIDE {
             // Both endpoints are inside the clip region. Trivial accept.
-            break Some((e0, e1));
+            break Some(Line(e0, e1));
         }
         else if (code0 & code1) != OutCode::INSIDE {
             // Both endpoints share an outside region. In other words,
@@ -67,58 +69,58 @@ pub fn clip_line(line: (Vector4<f32>, Vector4<f32>)) -> Option<(Vector4<f32>,Vec
             let delta = e1 - e0;
             let alpha = if code_out.contains(OutCode::RIGHT) {
                 // Point is right to the clipping region.
-                (e0.w - e0.x) / (delta.x - delta.w)
+                (e0.position.w - e0.position.x) / (delta.position.x - delta.position.w)
             }
             else if code_out.contains(OutCode::LEFT) {
                 // Point is left to the clipping region.
-                (-e0.w - e0.x) / (delta.x + delta.w)
+                (-e0.position.w - e0.position.x) / (delta.position.x + delta.position.w)
             }
             else if code_out.contains(OutCode::TOP) {
                 // Point is above the clipping region.
-                (e0.w - e0.y) / (delta.y - delta.w)
+                (e0.position.w - e0.position.y) / (delta.position.y - delta.position.w)
             }
             else if code_out.contains(OutCode::BOTTOM) {
                 // Point is bellow the clipping region.
-                (-e0.w - e0.y) / (delta.y + delta.w)
+                (-e0.position.w - e0.position.y) / (delta.position.y + delta.position.w)
             }
             else if code_out.contains(OutCode::BACK) {
                 // Point is behind the clipping region.
-                (e0.w - e0.z) / (delta.z - delta.w)
+                (e0.position.w - e0.position.z) / (delta.position.z - delta.position.w)
             }
             else {
                 // Point is ahead the clipping region.
-                (-e0.w - e0.z) / (delta.z + delta.w)
+                (-e0.position.w - e0.position.z) / (delta.position.z + delta.position.w)
             };
             let mut intersection = (1.0 - alpha) * e0 + alpha * e1;
 
             // Quick fix for floation point accuracy problems.
             if code_out.contains(OutCode::RIGHT) {
-                intersection.x = intersection.w;
+                intersection.position.x = intersection.position.w;
             }
             else if code_out.contains(OutCode::LEFT) {
-                intersection.x = -intersection.w;
+                intersection.position.x = -intersection.position.w;
             }
             else if code_out.contains(OutCode::TOP) {
-                intersection.y = intersection.w;
+                intersection.position.y = intersection.position.w;
             }
             else if code_out.contains(OutCode::BOTTOM) {
-                intersection.y = -intersection.w;
+                intersection.position.y = -intersection.position.w;
             }
             else if code_out.contains(OutCode::BACK) {
-                intersection.z = intersection.w;
+                intersection.position.z = intersection.position.w;
             }
             else {
-                intersection.z = -intersection.w;
+                intersection.position.z = -intersection.position.w;
             };
 
             // Move the selected outside point to the intersection.
             if code_out == code0 {
                 e0 = intersection;
-                code0 = compute_outcode(e0);
+                code0 = compute_outcode(e0.position);
             }
             else if code_out == code1 {
                 e1 = intersection;
-                code1 = compute_outcode(e1);
+                code1 = compute_outcode(e1.position);
             }
         }
     }
