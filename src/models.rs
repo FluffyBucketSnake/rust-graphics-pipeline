@@ -16,28 +16,30 @@ pub fn build_line_circle(dtheta: f32, colors: &(Color, Color)) -> Vec<Line<Verte
 pub fn build_line_cube() -> (Vec<Vertex>, Vec<Line<usize>>) {
     let mut vertices = Vec::new();
 
-    vertices.push(Vertex::new(-0.5, -0.5, -0.5, Color::WHITE));
-    vertices.push(Vertex::new(-0.5, -0.5,  0.5, Color::WHITE));
-    vertices.push(Vertex::new(-0.5,  0.5, -0.5, Color::WHITE));
+    // Front
+    vertices.push(Vertex::new(-0.5, -0.5, -0.5, Color::RED));
+    vertices.push(Vertex::new( 0.5, -0.5, -0.5, Color::BLUE));
+    vertices.push(Vertex::new( 0.5,  0.5, -0.5, Color::GREEN));
+    vertices.push(Vertex::new(-0.5,  0.5, -0.5, Color::CYAN));
+    // Back
+    vertices.push(Vertex::new(-0.5, -0.5,  0.5, Color::YELLOW));
+    vertices.push(Vertex::new( 0.5, -0.5,  0.5, Color::MAGENTA));
+    vertices.push(Vertex::new( 0.5,  0.5,  0.5, Color::GREY));
     vertices.push(Vertex::new(-0.5,  0.5,  0.5, Color::WHITE));
-    vertices.push(Vertex::new( 0.5, -0.5, -0.5, Color::WHITE));
-    vertices.push(Vertex::new( 0.5, -0.5,  0.5, Color::WHITE));
-    vertices.push(Vertex::new( 0.5,  0.5, -0.5, Color::WHITE));
-    vertices.push(Vertex::new( 0.5,  0.5,  0.5, Color::WHITE));
 
     let mut indexes = Vec::new();
     indexes.push(Line(0, 1));
-    indexes.push(Line(1, 3));
-    indexes.push(Line(3, 2));
-    indexes.push(Line(2, 0));
-    indexes.push(Line(4, 5));
-    indexes.push(Line(5, 7));
-    indexes.push(Line(7, 6));
-    indexes.push(Line(6, 4));
+    indexes.push(Line(0, 3));
     indexes.push(Line(0, 4));
+    indexes.push(Line(1, 2));
     indexes.push(Line(1, 5));
+    indexes.push(Line(2, 3));
     indexes.push(Line(2, 6));
     indexes.push(Line(3, 7));
+    indexes.push(Line(4, 5));
+    indexes.push(Line(4, 7));
+    indexes.push(Line(5, 6));
+    indexes.push(Line(6, 7));
 
     (vertices, indexes)
 }
