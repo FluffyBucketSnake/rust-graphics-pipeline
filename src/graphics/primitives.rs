@@ -17,10 +17,10 @@ pub enum WindingOrder {
 
 impl Triangle<Vertex> {
     pub fn order(&self) -> WindingOrder {
-        let u = self.1.position - self.0.position;
-        let v = self.2.position - self.0.position;
-
-        let p = -self.0.position.to_vec();
+        let u = (self.1.position - self.0.position).truncate();
+        let v = (self.2.position - self.0.position).truncate();
+        
+        let p = -self.0.position.truncate();
         let n = Vector3::cross(u, v);
 
         let dot = Vector3::dot(p, n);
