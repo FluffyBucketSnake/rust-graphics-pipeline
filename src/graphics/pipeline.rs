@@ -1,9 +1,8 @@
 use super::clipping::clip_line;
 use super::primitives::{Line, Triangle};
 use super::raster::Rasterizer;
-use super::{primitives::WindingOrder, BitmapOutput, GPU};
+use super::BitmapOutput;
 use crate::vertex::Vertex;
-use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
 
 /// A software implementation of a raster graphics processor pipeline.
@@ -35,7 +34,7 @@ impl Pipeline {
         // Copy input.
         let mut primitives = primitives.to_vec();
 
-        // Process each vertex.
+        // Render each primitive
         for primitive in primitives.iter_mut() {
             // Vertex stage.
             self.vertex_processor(&mut primitive.0);
@@ -46,7 +45,8 @@ impl Pipeline {
                 // Primitive has been discarded.
                 continue;
             }
-            // Render primitive.
+
+            // Rasterization.
             self.rasterizer.draw_line(*primitive, target);
         }
     }
@@ -54,60 +54,63 @@ impl Pipeline {
     pub fn draw_indexed_lines<B: BitmapOutput>(&self, vertices: &[Vertex], primitives: &[Line<usize>], target: &mut B) {
         // Copy input data.
         let mut vertices = vertices.to_vec();
-        let mut primitives = primitives.to_vec();
+        let primitives = primitives.to_vec();
 
         // Vertex stage.
         for vertex in vertices.iter_mut() {
             self.vertex_processor(vertex);
         }
 
-        // Primitive stage.
         for primitive in primitives {
-            let mut line = Line(vertices[primitive.0], vertices[primitive.1]);
+            // Primitive stage.
+            let mut line = Line(vertices[primitive.0], vertices[primitive.1]);  // Primitive assembly
             if !self.line_processor(&mut line, target.size()) {
                 // Primitive has been discarded.
                 continue;
             }
+
+            // Rasterization.
             self.rasterizer.draw_line(line, target);
         }
     }
     
     pub fn draw_triangles<B: BitmapOutput>(&self, primitives: &[Triangle<Vertex>], target: &mut B) {
-        for primitive in primitives {
-            // Copy input data.
-            let Triangle(mut e0, mut e1, mut e2) = primitive;
+        // Copy input buffer.
+        let mut primitives = primitives.to_vec();
 
+        for mut primitive in primitives {
             // Vertex stage.
-            self.vertex_processor(&mut e0);
-            self.vertex_processor(&mut e1);
-            self.vertex_processor(&mut e2);
+            self.vertex_processor(&mut primitive.0);
+            self.vertex_processor(&mut primitive.1);
+            self.vertex_processor(&mut primitive.2);
 
             // Primitive stage.
+            // TODO
 
             // Raster primitive.
+            self.rasterizer.draw_triangle(primitive, target);
         }
     }
 
     pub fn draw_indexed_triangles<B: BitmapOutput>(&self, vertices: &[Vertex], primitives: &[Triangle<usize>], target: &mut B) {
         // Copy input data.
         let mut vertices = vertices.to_vec();
-        let mut primitives = primitives.to_vec();
+        let primitives = primitives.to_vec();
 
         // Vertex stage.
         for vertex in vertices.iter_mut() {
             self.vertex_processor(vertex);
         }
 
-        // Primitive stage.
         for primitive in primitives {
-            // Dereference triangle vertices.
+            // Primitive stage.
+            // Primitive assembly.
             let primitive = Triangle(
                 vertices[primitive.0],
                 vertices[primitive.1],
                 vertices[primitive.2],
             );
-
-            // Back-face culling.
+            // TODO
 
             // Raster primitive.
             self.rasterizer.draw_triangle(primitive, target);
@@ -127,6 +130,7 @@ impl Pipeline {
             return false;
         }
 
+        // Perspective divide.
         line.0.position /= line.0.position.w;
         line.1.position /= line.1.position.w;
 
