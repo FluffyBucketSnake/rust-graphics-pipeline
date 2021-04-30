@@ -1,10 +1,10 @@
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Point3, Vector3};
+use cgmath::{Matrix4, Vector3, Vector4};
 use std::mem::swap;
 use crate::color::mix;
 use crate::vertex::Vertex;
 use super::clipping::clip_line;
-use super::primitives::{Line, Triangle};
+use super::primitives::{Line, Triangle, WindingOrder};
 use super::{BitmapOutput, GPU};
 
 pub enum FillMode {
@@ -18,17 +18,112 @@ pub enum FillMode {
 /// then setup the primitives, traverses the screen, rendering each pixel.
 pub struct Rasterizer {
     pub fill_mode: FillMode,
+    pub front_face: WindingOrder,
 }
 
 impl Rasterizer {
     pub fn new() -> Self {
         Rasterizer {
             fill_mode: FillMode::Solid,
+            front_face: WindingOrder::Both,
         }
     }
 }
 
 impl Rasterizer {
+    pub fn draw_line<B: BitmapOutput>(&self, line: Line<Vertex>, target: &mut B) {
+        // Line traversal.
+        // Based on DDA algorithm.
+        let delta = line.1 - line.0;
+        let step = f32::max(delta.position.x.abs(), delta.position.y.abs());  // Largest axis difference.
+        let derivant = delta / step;    // Increment for each axis.
+        let mut integrant = line.0;
+        let mut i: f32 = 0.0;
+        while i < step {
+            let Vertex { position: Vector4 { x, y, z: _, w: _}, color: _} = integrant;
+            target.put_pixel((x as u32, y as u32), mix(line.0.color, line.1.color, i / f32::max(step - 1.0, 1.0)));
+            integrant += derivant;
+            i += 1.0;
+        }
+    }
+
+    pub fn draw_triangle<B: BitmapOutput>(&self, mut triangle: Triangle<Vertex>, target: &mut B) {
+        match self.fill_mode {
+            FillMode::Wireframe => {
+                self.draw_line(Line(triangle.0, triangle.1), target);
+                self.draw_line(Line(triangle.1, triangle.2), target);
+                self.draw_line(Line(triangle.2, triangle.0), target);
+            },
+            FillMode::Solid => {
+
+                // Screen mapping phase.
+                // TODO: Use viewport instead of screen.
+                let (sw, sh) = target.size();
+                let (sw, sh) = (sw as f32, sh as f32);
+                let transform = Matrix4::from_nonuniform_scale(sw / 2.0, -sh / 2.0, 1.0)
+                                         * Matrix4::from_translation(Vector3::new(1.0, -1.0, 0.0));
+                triangle.0.position = transform * triangle.0.position;
+                triangle.1.position = transform * triangle.1.position;
+                triangle.2.position = transform * triangle.2.position;
+
+                // Front-face culling.
+                match triangle.order() {
+                    WindingOrder::Clockwise => {
+                        if self.front_face == WindingOrder::CounterClockwise { return }
+                    },
+                    WindingOrder::CounterClockwise => {
+                        if self.front_face == WindingOrder::Clockwise { return }
+                    },
+                    WindingOrder::Both => {},
+                }
+
+                // Use references for easy swapping.
+                let (mut v0, mut v1, mut v2) = (&mut triangle.0, &mut triangle.1, &mut triangle.2);
+
+                // Sort vertices by y-value. v0.y < v1.y < v2.y
+                if v0.position.y > v1.position.y { swap(&mut v0, &mut v1); }
+                if v1.position.y > v2.position.y { swap(&mut v1, &mut v2); }
+                if v0.position.y > v1.position.y { swap(&mut v0, &mut v1); }
+
+                if v0.position.y == v1.position.y {
+                    // Sort top vertices by x. v0.x < v1.x
+                    if v0.position.x > v1.position.x { swap(&mut v0, &mut v1) }
+
+                    // Natural flat top.
+                    self.draw_flattop_triangle(Triangle(*v0, *v1, *v2), target);
+                }
+                else if v1.position.y == v2.position.y {
+                    // Sort bottom vertices by x. v1.x < v2.x
+                    if v1.position.x > v2.position.x { swap(&mut v1, &mut v2) }
+
+                    // Natural bottom top.
+                    self.draw_flatbottom_triangle(Triangle(*v0, *v1, *v2), target);
+                }
+                else {
+                    let a = (v1.position - v0.position).y /
+                            (v2.position - v0.position).y;
+
+                    // TODO: Create a dedicated interpolation function/trait.
+                    let vi = Vertex { 
+                        position: v0.position + ((v2.position - v0.position) * a),
+                        color: mix(v0.color, v2.color, a),
+                    };
+
+                    if v1.position.x > vi.position.x {
+                        // Major left
+                        self.draw_flatbottom_triangle(Triangle(*v0, vi, *v1), target);
+                        self.draw_flattop_triangle(Triangle(vi, *v1, *v2), target);
+                    }
+                    else {
+                        // Major right
+                        self.draw_flatbottom_triangle(Triangle(*v0, *v1, vi), target);
+                        self.draw_flattop_triangle(Triangle(*v1, vi, *v2), target);
+                    }
+                }
+            },
+        }
+    }
+
     fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
         let Triangle(v0, v1, v2) = triangle;
 
@@ -106,117 +201,6 @@ impl Rasterizer {
 
             // Go to the next line.
             y += 1.0;
-        }
-    }
-}
-
-impl<B> GPU<Line<Vertex>, B> for Rasterizer 
-where B: BitmapOutput {
-    fn draw(&self, line: Line<Vertex>, target: &mut B) {
-        let Line(mut start, mut end) = line;
-        
-        // Clip lines out side the window.
-        let line_xyz = (start.position, end.position);
-        if let Some(line_xyz) = clip_line(line_xyz) {
-            start.position.x = line_xyz.0.x;
-            start.position.y = line_xyz.0.y;
-            start.position.z = line_xyz.0.z;
-            end.position.x = line_xyz.1.x;
-            end.position.y = line_xyz.1.y;
-            end.position.z = line_xyz.1.z;
-        }
-        else {
-            // Line has been completely clipped out.
-            return;
-        }
-        
-        // Screen mapping phase.
-        let (sw, sh) = target.size();
-        let (sw, sh) = (sw as f32, sh as f32);
-        let transform = Matrix4::from_nonuniform_scale(sw / 2.0, -sh / 2.0, 1.0)
-                                 * Matrix4::from_translation(Vector3::new(1.0, -1.0, 0.0));
-        start.position = transform.transform_point(start.position);
-        end.position = transform.transform_point(end.position);
-        
-        // Line traversal.
-        // Based on DDA algorithm.
-        let delta = end.position - start.position;
-        let step = f32::max(delta.x.abs(), delta.y.abs());  // Largest axis difference.
-        let Vector3 { x: xi, y: yi, z: _ } = delta / step;    // Increment for each axis.
-        let Point3 { mut x, mut y, z: _ } = start.position;
-        let mut i: f32 = 0.0;
-        while i < step {
-            target.put_pixel((x as u32, y as u32), mix(start.color, end.color, i / f32::max(step - 1.0, 1.0)));
-            x += xi;
-            y += yi;
-            i += 1.0;
-        }
-    }
-}
-
-impl<B: BitmapOutput> GPU<Triangle<Vertex>, B> for Rasterizer {
-    fn draw(&self, mut triangle: Triangle<Vertex>, target: &mut B) {
-        match self.fill_mode {
-            FillMode::Wireframe => {
-                self.draw(Line(triangle.0, triangle.1), target);
-                self.draw(Line(triangle.1, triangle.2), target);
-                self.draw(Line(triangle.2, triangle.0), target);
-            },
-            FillMode::Solid => {
-                // Use references for easy swapping.
-                let (mut v0, mut v1, mut v2) = (&mut triangle.0, &mut triangle.1, &mut triangle.2);
-
-                // Screen mapping phase.
-                // TODO: Use viewport instead of screen.
-                let (sw, sh) = target.size();
-                let (sw, sh) = (sw as f32, sh as f32);
-                let transform = Matrix4::from_nonuniform_scale(sw / 2.0, -sh / 2.0, 1.0)
-                                         * Matrix4::from_translation(Vector3::new(1.0, -1.0, 0.0));
-                v0.position = transform.transform_point(v0.position);
-                v1.position = transform.transform_point(v1.position);
-                v2.position = transform.transform_point(v2.position);
-
-                // Sort vertices by y-value. v0.y < v1.y < v2.y
-                if v0.position.y > v1.position.y { swap(&mut v0, &mut v1); }
-                if v1.position.y > v2.position.y { swap(&mut v1, &mut v2); }
-                if v0.position.y > v1.position.y { swap(&mut v0, &mut v1); }
-
-                if v0.position.y == v1.position.y {
-                    // Sort top vertices by x. v0.x < v1.x
-                    if v0.position.x > v1.position.x { swap(&mut v0, &mut v1) }
-
-                    // Natural flat top.
-                    self.draw_flattop_triangle(Triangle(*v0, *v1, *v2), target);
-                }
-                else if v1.position.y == v2.position.y {
-                    // Sort bottom vertices by x. v1.x < v2.x
-                    if v1.position.x > v2.position.x { swap(&mut v1, &mut v2) }
-
-                    // Natural bottom top.
-                    self.draw_flatbottom_triangle(Triangle(*v0, *v1, *v2), target);
-                }
-                else {
-                    let a = (v1.position - v0.position).y /
-                            (v2.position - v0.position).y;
-
-                    // TODO: Create a dedicated interpolation function/trait.
-                    let vi = Vertex { 
-                        position: v0.position + ((v2.position - v0.position) * a),
-                        color: mix(v0.color, v2.color, a),
-                    };
-
-                    if v1.position.x > vi.position.x {
-                        // Major left
-                        self.draw_flatbottom_triangle(Triangle(*v0, vi, *v1), target);
-                        self.draw_flattop_triangle(Triangle(vi, *v1, *v2), target);
-                    }
-                    else {
-                        // Major right
-                        self.draw_flatbottom_triangle(Triangle(*v0, *v1, vi), target);
-                        self.draw_flattop_triangle(Triangle(*v1, vi, *v2), target);
-                    }
-                }
-            },
         }
     }
 }
