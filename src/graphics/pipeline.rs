@@ -1,4 +1,4 @@
-use super::clipping::clip_line;
+use super::clipping::{clip_line, clip_triangle};
 use super::primitives::{Line, Triangle, WindingOrder};
 use super::vertex::Vertex;
 use super::BitmapOutput;
@@ -118,18 +118,31 @@ impl Pipeline {
         for primitive in primitives {
             // Primitive stage.
             // Primitive assembly.
-            let mut primitive = Triangle(
+            let primitive = Triangle(
                 vertices[primitive.0],
                 vertices[primitive.1],
                 vertices[primitive.2],
             );
-            if !self.triangle_processor(&mut primitive, target.size()) {
-                // Primitive has been discarded.
-                continue;
-            }
 
-            // Raster primitive.
-            self.render_triangle(primitive, target);
+            match clip_triangle(primitive) {
+                super::clipping::ClippedTriangle::Empty => {}
+                super::clipping::ClippedTriangle::One(mut t) => {
+                    if self.triangle_processor(&mut t, target.size()) {
+                        self.render_triangle(t, target);
+                    }
+                }
+                super::clipping::ClippedTriangle::Two(mut t1, mut t2) => {
+                    if self.triangle_processor(&mut t1, target.size()) {
+                        self.render_triangle(t1, target);
+                    }
+                    if self.triangle_processor(&mut t2, target.size()) {
+                        self.render_triangle(t2, target);
+                    }
+                }
+            }
+            // if self.triangle_processor(&mut primitive, target.size()) {
+            //     self.render_triangle(primitive, target);
+            // }
         }
     }
 
@@ -167,6 +180,11 @@ impl Pipeline {
     /// Applies the primitive processing stage onto the input triangle.
     /// ie. Clipping and front face culling.
     fn triangle_processor(&self, triangle: &mut Triangle<Vertex>, screen: (u32, u32)) -> bool {
+        // Perspective divide.
+        triangle.0.position /= triangle.0.position.w;
+        triangle.1.position /= triangle.1.position.w;
+        triangle.2.position /= triangle.2.position.w;
+
         // Screen mapping phase.
         // TODO: Use viewport instead of screen.
         let (sw, sh) = (screen.0 as f32, screen.1 as f32);

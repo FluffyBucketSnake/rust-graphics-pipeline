@@ -20,7 +20,7 @@ fn main() {
     let mut pipeline = Pipeline::new();
 
     // Build model.
-    let model = models::build_line_cube();
+    let model = models::build_triangle_cube();
     let worldviewproj = perspective(Rad(std::f32::consts::FRAC_PI_2), 1.0, 1.0, 100.0)
                         * Matrix4::look_to_rh(point3(0.0, 0.0, 0.0), Vector3::unit_z(), Vector3::unit_y())
                         * Matrix4::from_translation(vec3(0.0, 0.0, 4.0)); 
@@ -42,7 +42,7 @@ fn main() {
         let translation = Matrix4::from_translation(vec3(0.0, 0.0, -8.0 * f32::sin(theta1)));
         pipeline.worldviewproj = worldviewproj * translation * rotation;
 
-        pipeline.draw_indexed_lines(&model.0[..], &model.1[..], output);
+        pipeline.draw_indexed_triangles(&model.0[..], &model.1[..], output);
         
         output.present();
 
