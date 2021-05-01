@@ -119,7 +119,7 @@ pub fn clip_line(line: Line<Vertex>) -> Option<Line<Vertex>> {
 /// Clips the triangle to the front-face or culls it to the back-face.
 pub fn clip_triangle(triangle: Triangle<Vertex>) -> ClippedTriangle<Vertex> {
     // Cull tests
-    if triangle.0.position.x < -triangle.0.position.w
+    if  triangle.0.position.x < -triangle.0.position.w
         && triangle.1.position.x < -triangle.1.position.w
         && triangle.2.position.x < -triangle.2.position.w
     {
@@ -182,8 +182,11 @@ pub fn clip_triangle(triangle: Triangle<Vertex>) -> ClippedTriangle<Vertex> {
 
 /// Clips a single vertex from the triangle. Creates two new triangles.
 fn clip_one_vertex(v0: Vertex, v1: Vertex, v2: Vertex) -> ClippedTriangle<Vertex> {
-    let alpha1 = (-v0.position.w - v0.position.z) / (v1.position.z - v0.position.z);
-    let alpha2 = (-v0.position.w - v0.position.z) / (v2.position.z - v0.position.z);
+    let delta1 = v1.position - v0.position;
+    let delta2 = v2.position - v0.position;
+
+    let alpha1 = -(v0.position.w + v0.position.z) / (delta1.z + delta1.w);
+    let alpha2 = -(v0.position.w + v0.position.z) / (delta2.z + delta2.w);
 
     let v0a = ((1.0 - alpha1) * v0) + (alpha1 * v1);
     let v0b = ((1.0 - alpha2) * v0) + (alpha2 * v2);
@@ -193,8 +196,11 @@ fn clip_one_vertex(v0: Vertex, v1: Vertex, v2: Vertex) -> ClippedTriangle<Vertex
 
 /// Clips two vertices from the triangle. Creates only one triangle.
 fn clip_two_vertices(v0: Vertex, v1: Vertex, v2: Vertex) -> ClippedTriangle<Vertex> {
-    let alpha1 = (-v0.position.w - v0.position.z) / (v2.position.z - v0.position.z);
-    let alpha2 = (-v1.position.w - v1.position.z) / (v2.position.z - v1.position.z);
+    let delta1 = v2.position - v0.position;
+    let delta2 = v2.position - v1.position;
+
+    let alpha1 = -(v0.position.w + v0.position.z) / (delta1.z + delta1.w);
+    let alpha2 = -(v1.position.w + v1.position.z) / (delta2.z + delta2.w);
 
     let v0 = ((1.0 - alpha1) * v0) + (alpha1 * v2);
     let v1 = ((1.0 - alpha2) * v1) + (alpha2 * v2);
