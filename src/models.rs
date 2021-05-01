@@ -50,36 +50,28 @@ pub fn build_line_cube() -> (Vec<Vertex>, Vec<Line<usize>>) {
 pub fn build_triangle_cube() -> (Vec<Vertex>, Vec<Triangle<usize>>) {
     let mut vertices = Vec::new();
 
-    // Front
     vertices.push(Vertex::new(-0.5, -0.5, -0.5, Color::RED));
-    vertices.push(Vertex::new( 0.5, -0.5, -0.5, Color::BLUE));
-    vertices.push(Vertex::new( 0.5,  0.5, -0.5, Color::GREEN));
-    vertices.push(Vertex::new(-0.5,  0.5, -0.5, Color::CYAN));
-    // Back
-    vertices.push(Vertex::new(-0.5, -0.5,  0.5, Color::YELLOW));
+    vertices.push(Vertex::new( 0.5, -0.5, -0.5, Color::GREEN));
+    vertices.push(Vertex::new(-0.5,  0.5, -0.5, Color::BLUE));
+    vertices.push(Vertex::new( 0.5,  0.5, -0.5, Color::YELLOW));
+    vertices.push(Vertex::new(-0.5, -0.5,  0.5, Color::CYAN));
     vertices.push(Vertex::new( 0.5, -0.5,  0.5, Color::MAGENTA));
-    vertices.push(Vertex::new( 0.5,  0.5,  0.5, Color::GREY));
     vertices.push(Vertex::new(-0.5,  0.5,  0.5, Color::WHITE));
+    vertices.push(Vertex::new( 0.5,  0.5,  0.5, Color::BLACK));
 
     let mut indexes = Vec::new();
-    // Front
-    indexes.push(Triangle(0, 1, 2));
-    indexes.push(Triangle(0, 2, 3));
-    // Bottom
-    indexes.push(Triangle(1, 0, 4));
-    indexes.push(Triangle(1, 4, 5));
-    // Back
-    indexes.push(Triangle(5, 4, 7));
-    indexes.push(Triangle(5, 7, 6));
-    // Top
-    indexes.push(Triangle(3, 2, 6));
+    indexes.push(Triangle(0, 2, 1));
+    indexes.push(Triangle(2, 3, 1));
+    indexes.push(Triangle(1, 3, 5));
+    indexes.push(Triangle(3, 7, 5));
+    indexes.push(Triangle(2, 6, 3));
     indexes.push(Triangle(3, 6, 7));
-    // Left
-    indexes.push(Triangle(4, 0, 3));
-    indexes.push(Triangle(4, 3, 7));
-    // Right
-    indexes.push(Triangle(1, 5, 6));
-    indexes.push(Triangle(1, 6, 2));
+    indexes.push(Triangle(4, 5, 7));
+    indexes.push(Triangle(4, 7, 6));
+    indexes.push(Triangle(0, 4, 2));
+    indexes.push(Triangle(2, 4, 6));
+    indexes.push(Triangle(0, 1, 4));
+    indexes.push(Triangle(1, 5, 4));
 
     (vertices, indexes)
 }
