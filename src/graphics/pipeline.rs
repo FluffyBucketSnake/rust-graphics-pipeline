@@ -23,6 +23,7 @@ pub struct Pipeline {
 }
 
 impl Pipeline {
+    /// Constructs a new `Pipeline`.
     pub fn new() -> Self {
         Self {
             fill_mode: FillMode::Solid,
@@ -31,6 +32,7 @@ impl Pipeline {
         }
     }
 
+    /// Draws multiple lines onto the render target.
     #[allow(dead_code)]
     pub fn draw_lines<B: BitmapOutput>(&self, primitives: &[Line<Vertex>], target: &mut B) {
         // Copy input.
@@ -53,6 +55,7 @@ impl Pipeline {
         }
     }
 
+    /// Draws multiple lines onto the render target. Allows vertex indexing.
     #[allow(dead_code)]
     pub fn draw_indexed_lines<B: BitmapOutput>(&self, vertices: &[Vertex], primitives: &[Line<usize>], target: &mut B) {
         // Copy input data.
@@ -77,6 +80,7 @@ impl Pipeline {
         }
     }
     
+    /// Draws multiple triangles onto the render target.
     #[allow(dead_code)]
     pub fn draw_triangles<B: BitmapOutput>(&self, primitives: &[Triangle<Vertex>], target: &mut B) {
         // Copy input buffer.
@@ -99,6 +103,7 @@ impl Pipeline {
         }
     }
 
+    /// Draws multiple triangles onto the render target. Allows vertex indexing.
     #[allow(dead_code)]
     pub fn draw_indexed_triangles<B: BitmapOutput>(&self, vertices: &[Vertex], primitives: &[Triangle<usize>], target: &mut B) {
         // Copy input data.
@@ -128,11 +133,14 @@ impl Pipeline {
         }
     }
 
+    /// Executes the vertex processor onto the input vertex. To be replaced by the vertex shader.
     fn vertex_processor(&self, vertex: &mut Vertex) {
         // Apply the World-View-Projection to the vertex position.
         vertex.position = self.worldviewproj * vertex.position;
     }
 
+    /// Applies the primitive processing stage onto the input line.
+    /// Since lines can't go through front face culling, this method only clips the line.
     fn line_processor(&self, line: &mut Line<Vertex>, screen: (u32, u32)) -> bool {
         // Clip lines outside the window.
         if let Some(cline) = clip_line(*line) {
@@ -156,6 +164,8 @@ impl Pipeline {
         return true;
     }
 
+    /// Applies the primitive processing stage onto the input triangle.
+    /// ie. Clipping and front face culling.
     fn triangle_processor(&self, triangle: &mut Triangle<Vertex>, screen: (u32, u32)) -> bool {
         // Screen mapping phase.
         // TODO: Use viewport instead of screen.
@@ -180,9 +190,9 @@ impl Pipeline {
         true
     }
 
+    /// Renders the line onto the render target. Uses the DDA algorithm.
     fn render_line<B: BitmapOutput>(&self, line: Line<Vertex>, target: &mut B) {
         // Line traversal.
-        // Based on DDA algorithm.
         let delta = line.1 - line.0;
         let step = f32::max(delta.position.x.abs(), delta.position.y.abs());  // Largest axis difference.
         let derivant = delta / step;    // Increment for each axis.
@@ -196,6 +206,7 @@ impl Pipeline {
         }
     }
 
+    /// Renders the line onto the render target.
     fn render_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
         match self.fill_mode {
             FillMode::Wireframe => {
@@ -251,6 +262,8 @@ impl Pipeline {
         }
     }
 
+    /// Renders a flat top triangle onto the screen.
+    /// TODO: refactor this and `draw_flatbottom_triangle` functions.
     fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
         let Triangle(v0, v1, v2) = triangle;
 
@@ -291,6 +304,8 @@ impl Pipeline {
         }
     }
 
+    /// Renders a flat bottom triangle onto the screen.
+    /// TODO: refactor this and `draw_flattop_triangle` functions.
     fn draw_flatbottom_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
         let Triangle(v0, v1, v2) = triangle;
 

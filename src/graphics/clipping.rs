@@ -15,6 +15,7 @@ bitflags! {
     }
 }
 
+/// Computes the position of a 4-dimensional vector in the unit view frustum.
 fn compute_outcode(position: Vector4<f32>) -> OutCode {
     let mut code: OutCode = OutCode::INSIDE;
 
@@ -40,6 +41,7 @@ fn compute_outcode(position: Vector4<f32>) -> OutCode {
     code
 }
 
+/// Clips the line against a unit view frustum.
 pub fn clip_line(line: Line<Vertex>) -> Option<Line<Vertex>> {
     let Line(mut e0, mut e1) = line;
 
