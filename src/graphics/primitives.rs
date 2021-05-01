@@ -30,8 +30,7 @@ impl Triangle<Vertex> {
         let n = Vector3::cross(u, v);
 
         let dot = Vector3::dot(p, n);
-        if dot > 0.0 { WindingOrder::CounterClockwise }
-        else if dot < 0.0 { WindingOrder::Clockwise }
-        else { WindingOrder::Both }
+        if dot <= 0.0 { WindingOrder::CounterClockwise }
+        else { WindingOrder::Clockwise }
     }
 }

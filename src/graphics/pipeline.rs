@@ -156,19 +156,15 @@ impl Pipeline {
     /// First, the triangle is culled, then it's clipped against the view frustum, then each
     /// resulting triangle is sent for postprocessing.
     fn triangle_processor<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
-        // Front-face culling.
-        match triangle.order() {
-            WindingOrder::Clockwise => {
-                if self.front_face == WindingOrder::CounterClockwise {
-                    return; 
-                }
-            }
-            WindingOrder::CounterClockwise => {
-                if self.front_face == WindingOrder::Clockwise {
-                    return; 
-                }
-            }
-            WindingOrder::Both => {}
+        // Face culling.
+        match (self.front_face, triangle.order()) {
+            (WindingOrder::CounterClockwise, WindingOrder::Clockwise) => {
+                return; 
+            },
+            (WindingOrder::Clockwise, WindingOrder::CounterClockwise) => {
+                return;
+            },
+            _ => {}
         };
 
         // Front plane clipping.
