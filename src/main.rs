@@ -18,17 +18,9 @@ fn main() {
     let framework = Framework::init();
     let mut output = framework.create_video_output();
     let mut pipeline = Pipeline::new();
-    // pipeline.rasterizer().fill_mode = FillMode::Wireframe;
 
     // Build model.
     let model = models::build_line_cube();
-    // let model = (vec![
-    //              crate::vertex::Vertex::new(-0.5, -0.5, 0.0, Color::WHITE),
-    //              crate::vertex::Vertex::new(-0.5,  0.5, 0.0, Color::WHITE),
-    //              crate::vertex::Vertex::new( 0.5,  0.5, 0.0, Color::WHITE),
-    //              crate::vertex::Vertex::new( 0.5, -0.5, 0.0, Color::WHITE)
-    //              ],
-    //              vec![Triangle::<usize>(1, 0, 2), Triangle::<usize>(0, 3, 2)]);
     let worldviewproj = perspective(Rad(std::f32::consts::FRAC_PI_2), 1.0, 1.0, 100.0)
                         * Matrix4::look_to_rh(point3(0.0, 0.0, 0.0), Vector3::unit_z(), Vector3::unit_y())
                         * Matrix4::from_translation(vec3(0.0, 0.0, 4.0)); 
