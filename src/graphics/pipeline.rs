@@ -295,8 +295,8 @@ impl Pipeline {
         let m2 = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
 
         // Iterate over each horizontal line.
-        let y_start = f32::ceil(v0.position.y - 0.5);
-        let y_end = f32::ceil(v2.position.y - 0.5);
+        let y_start = f32::max(f32::ceil(v0.position.y - 0.5), 0.0);
+        let y_end = f32::min(f32::ceil(v2.position.y - 0.5), target.size().1 as f32);
         let mut y = y_start;
 
         while y < y_end {
@@ -307,8 +307,8 @@ impl Pipeline {
             let lc2 = mix(v1.color, v2.color, (y + 0.5 - y_start) / (y_end - y_start));
 
             // Calculate the pixel indices.
-            let x_start = f32::ceil(lx1 - 0.5);
-            let x_end = f32::ceil(lx2 - 0.5);
+            let x_start = f32::max(f32::ceil(lx1 - 0.5), 0.0);
+            let x_end = f32::min(f32::ceil(lx2 - 0.5), target.size().0 as f32);
             let mut x = x_start;
 
             while x < x_end {
@@ -336,8 +336,8 @@ impl Pipeline {
         let m2 = (v2.position.x - v0.position.x) / (v2.position.y - v0.position.y);
 
         // Iterate over each horizontal line.
-        let y_start = f32::ceil(v0.position.y - 0.5);
-        let y_end = f32::ceil(v2.position.y - 0.5);
+        let y_start = f32::max(f32::ceil(v0.position.y - 0.5), 0.0);
+        let y_end = f32::min(f32::ceil(v2.position.y - 0.5), target.size().1 as f32);
         let mut y = y_start;
 
         while y < y_end {
@@ -348,8 +348,8 @@ impl Pipeline {
             let lc2 = mix(v0.color, v2.color, (y + 0.5 - y_start) / (y_end - y_start));
 
             // Calculate the pixel indices.
-            let x_start = f32::ceil(lx1 - 0.5);
-            let x_end = f32::ceil(lx2 - 0.5);
+            let x_start = f32::max(f32::ceil(lx1 - 0.5), 0.0);
+            let x_end = f32::min(f32::ceil(lx2 - 0.5), target.size().0 as f32);
             let mut x = x_start;
 
             while x < x_end {
