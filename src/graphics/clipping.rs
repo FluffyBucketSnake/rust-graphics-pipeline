@@ -3,8 +3,6 @@ use cgmath::Vector4;
 use crate::vertex::Vertex;
 use super::Line;
 
-// TODO: Use clip space coordinates instead of NDC.
-
 bitflags! {
     struct OutCode: u8 {
         const INSIDE = 0b00000000;
