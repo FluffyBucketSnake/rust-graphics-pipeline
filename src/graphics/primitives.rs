@@ -1,6 +1,6 @@
 use cgmath::prelude::*;
 use cgmath::Vector3;
-use crate::vertex::Vertex;
+use super::vertex::Vertex;
 
 /// Line primitive.
 #[derive(Clone, Copy)]

@@ -6,7 +6,6 @@ mod framework;
 mod graphics;
 mod math;
 mod models;
-mod vertex;
 
 #[cfg(test)]
 mod tests;

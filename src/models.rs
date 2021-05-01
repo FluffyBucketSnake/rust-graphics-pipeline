@@ -1,5 +1,5 @@
 use crate::graphics::{Line, Triangle};
-use crate::vertex::Vertex;
+use crate::graphics::Vertex;
 use sdl2::pixels::Color;
 
 #[allow(dead_code)]

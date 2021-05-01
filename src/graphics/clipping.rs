@@ -1,7 +1,7 @@
 use bitflags::bitflags;
 use cgmath::Vector4;
-use crate::vertex::Vertex;
 use super::Line;
+use super::vertex::Vertex;
 
 bitflags! {
     struct OutCode: u8 {
