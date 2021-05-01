@@ -2,6 +2,7 @@ use crate::graphics::{Line, Triangle};
 use crate::vertex::Vertex;
 use sdl2::pixels::Color;
 
+#[allow(dead_code)]
 pub fn build_line_circle(dtheta: f32, colors: &(Color, Color)) -> Vec<Line<Vertex>> {
     let mut result = Vec::new();
     let mut theta = 0.0f32;
@@ -13,6 +14,7 @@ pub fn build_line_circle(dtheta: f32, colors: &(Color, Color)) -> Vec<Line<Verte
     result
 }
 
+#[allow(dead_code)]
 pub fn build_line_cube() -> (Vec<Vertex>, Vec<Line<usize>>) {
     let mut vertices = Vec::new();
 
@@ -44,6 +46,7 @@ pub fn build_line_cube() -> (Vec<Vertex>, Vec<Line<usize>>) {
     (vertices, indexes)
 }
 
+#[allow(dead_code)]
 pub fn build_triangle_cube() -> (Vec<Vertex>, Vec<Triangle<usize>>) {
     let mut vertices = Vec::new();
 
