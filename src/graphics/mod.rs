@@ -13,7 +13,3 @@ pub trait BitmapOutput {
     fn put_pixel(&mut self, position: (u32, u32), color: Color);
     fn present(&mut self);
 }
-
-pub trait GPU<InputData, OutputTarget> {
-    fn draw(&self, input: InputData, output: &mut OutputTarget);
-}
