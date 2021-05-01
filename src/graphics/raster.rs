@@ -1,5 +1,5 @@
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Vector3, Vector4};
+use cgmath::Vector4;
 use std::mem::swap;
 use crate::color::mix;
 use crate::vertex::Vertex;
@@ -18,14 +18,12 @@ pub enum FillMode {
 /// then setup the primitives, traverses the screen, rendering each pixel.
 pub struct Rasterizer {
     pub fill_mode: FillMode,
-    pub front_face: WindingOrder,
 }
 
 impl Rasterizer {
     pub fn new() -> Self {
         Rasterizer {
             fill_mode: FillMode::Solid,
-            front_face: WindingOrder::Both,
         }
     }
 }
@@ -55,28 +53,6 @@ impl Rasterizer {
                 self.draw_line(Line(triangle.2, triangle.0), target);
             },
             FillMode::Solid => {
-
-                // Screen mapping phase.
-                // TODO: Use viewport instead of screen.
-                let (sw, sh) = target.size();
-                let (sw, sh) = (sw as f32, sh as f32);
-                let transform = Matrix4::from_nonuniform_scale(sw / 2.0, -sh / 2.0, 1.0)
-                                         * Matrix4::from_translation(Vector3::new(1.0, -1.0, 0.0));
-                triangle.0.position = transform * triangle.0.position;
-                triangle.1.position = transform * triangle.1.position;
-                triangle.2.position = transform * triangle.2.position;
-
-                // Front-face culling.
-                match triangle.order() {
-                    WindingOrder::Clockwise => {
-                        if self.front_face == WindingOrder::CounterClockwise { return }
-                    },
-                    WindingOrder::CounterClockwise => {
-                        if self.front_face == WindingOrder::Clockwise { return }
-                    },
-                    WindingOrder::Both => {},
-                }
-
                 // Use references for easy swapping.
                 let (mut v0, mut v1, mut v2) = (&mut triangle.0, &mut triangle.1, &mut triangle.2);
 

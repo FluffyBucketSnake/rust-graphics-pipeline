@@ -21,7 +21,6 @@ fn main() {
     let mut output = framework.create_video_output();
     let mut pipeline = Pipeline::new();
     // pipeline.rasterizer().fill_mode = FillMode::Wireframe;
-    pipeline.rasterizer_mut().front_face = crate::graphics::WindingOrder::CounterClockwise;
 
     // Build model.
     let model = models::build_line_cube();

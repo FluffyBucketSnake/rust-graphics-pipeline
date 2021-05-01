@@ -1,5 +1,5 @@
 use super::clipping::clip_line;
-use super::primitives::{Line, Triangle};
+use super::primitives::{Line, Triangle, WindingOrder};
 use super::raster::Rasterizer;
 use super::BitmapOutput;
 use crate::vertex::Vertex;
@@ -12,12 +12,14 @@ use cgmath::{Matrix4, Vector3};
 pub struct Pipeline {
     rasterizer: Rasterizer,
     worldviewproj: Matrix4<f32>,
+    pub front_face: WindingOrder,
 }
 
 impl Pipeline {
     pub fn new() -> Self {
         Self {
             rasterizer: Rasterizer::new(),
+            front_face: WindingOrder::CounterClockwise,
             worldviewproj: Matrix4::from_scale(1.0),
         }
     }
@@ -26,10 +28,7 @@ impl Pipeline {
         self.worldviewproj = value;
     }
 
-    pub fn rasterizer_mut(&mut self) -> &mut Rasterizer {
-        &mut self.rasterizer
-    }
-
+    #[allow(dead_code)]
     pub fn draw_lines<B: BitmapOutput>(&self, primitives: &[Line<Vertex>], target: &mut B) {
         // Copy input.
         let mut primitives = primitives.to_vec();
@@ -51,6 +50,7 @@ impl Pipeline {
         }
     }
 
+    #[allow(dead_code)]
     pub fn draw_indexed_lines<B: BitmapOutput>(&self, vertices: &[Vertex], primitives: &[Line<usize>], target: &mut B) {
         // Copy input data.
         let mut vertices = vertices.to_vec();
@@ -74,9 +74,10 @@ impl Pipeline {
         }
     }
     
+    #[allow(dead_code)]
     pub fn draw_triangles<B: BitmapOutput>(&self, primitives: &[Triangle<Vertex>], target: &mut B) {
         // Copy input buffer.
-        let mut primitives = primitives.to_vec();
+        let primitives = primitives.to_vec();
 
         for mut primitive in primitives {
             // Vertex stage.
@@ -85,13 +86,17 @@ impl Pipeline {
             self.vertex_processor(&mut primitive.2);
 
             // Primitive stage.
-            // TODO
+            if !self.triangle_processor(&mut primitive, target.size()) {
+                // Primitive has been discarded.
+                continue;
+            }
 
             // Raster primitive.
             self.rasterizer.draw_triangle(primitive, target);
         }
     }
 
+    #[allow(dead_code)]
     pub fn draw_indexed_triangles<B: BitmapOutput>(&self, vertices: &[Vertex], primitives: &[Triangle<usize>], target: &mut B) {
         // Copy input data.
         let mut vertices = vertices.to_vec();
@@ -105,12 +110,15 @@ impl Pipeline {
         for primitive in primitives {
             // Primitive stage.
             // Primitive assembly.
-            let primitive = Triangle(
+            let mut primitive = Triangle(
                 vertices[primitive.0],
                 vertices[primitive.1],
                 vertices[primitive.2],
             );
-            // TODO
+            if !self.triangle_processor(&mut primitive, target.size()) {
+                // Primitive has been discarded.
+                continue;
+            }
 
             // Raster primitive.
             self.rasterizer.draw_triangle(primitive, target);
@@ -135,6 +143,7 @@ impl Pipeline {
         line.1.position /= line.1.position.w;
 
         // Screen mapping phase.
+        // TODO: Use viewport instead of screen.
         let (sw, sh) = (screen.0 as f32, screen.1 as f32);
         let transform = Matrix4::from_nonuniform_scale(sw / 2.0, -sh / 2.0, 1.0)
             * Matrix4::from_translation(Vector3::new(1.0, -1.0, 0.0));
@@ -142,5 +151,29 @@ impl Pipeline {
         line.1.position = transform * line.1.position;
 
         return true;
+    }
+
+    fn triangle_processor(&self, triangle: &mut Triangle<Vertex>, screen: (u32, u32)) -> bool {
+        // Screen mapping phase.
+        // TODO: Use viewport instead of screen.
+        let (sw, sh) = (screen.0 as f32, screen.1 as f32);
+        let transform = Matrix4::from_nonuniform_scale(sw / 2.0, -sh / 2.0, 1.0)
+                                 * Matrix4::from_translation(Vector3::new(1.0, -1.0, 0.0));
+        triangle.0.position = transform * triangle.0.position;
+        triangle.1.position = transform * triangle.1.position;
+        triangle.2.position = transform * triangle.2.position;
+
+        // Front-face culling.
+        match triangle.order() {
+            WindingOrder::Clockwise => {
+                if self.front_face == WindingOrder::CounterClockwise { return false }
+            },
+            WindingOrder::CounterClockwise => {
+                if self.front_face == WindingOrder::Clockwise { return false }
+            },
+            WindingOrder::Both => {},
+        };
+
+        true
     }
 }
