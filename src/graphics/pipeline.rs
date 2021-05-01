@@ -1,7 +1,7 @@
 use super::clipping::clip_line;
 use super::primitives::{Line, Triangle, WindingOrder};
 use super::BitmapOutput;
-use crate::color::mix;
+use crate::math::mix;
 use crate::vertex::Vertex;
 use cgmath::{Matrix4, Vector3, Vector4};
 use std::mem::swap;

@@ -2,9 +2,9 @@ extern crate bitflags;
 extern crate cgmath;
 extern crate sdl2;
 
-mod color;
 mod framework;
 mod graphics;
+mod math;
 mod models;
 mod vertex;
 

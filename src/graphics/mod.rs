@@ -5,7 +5,7 @@ mod primitives;
 pub use self::pipeline::*;
 pub use self::primitives::*;
 
-use crate::color::Color;
+use crate::math::Color;
 
 /// Interface for output bitmap buffer.
 pub trait BitmapOutput {
