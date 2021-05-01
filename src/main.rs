@@ -11,7 +11,6 @@ mod vertex;
 #[cfg(test)]
 mod tests;
 
-use sdl2::pixels::Color;
 use cgmath::{Quaternion, Matrix4, perspective, point3, Rad, vec3, Vector3};
 use crate::framework::Framework;
 use crate::graphics::*;
@@ -50,7 +49,7 @@ fn main() {
         let r = Quaternion::from_sv(f32::cos(theta1), f32::sin(theta1) * Vector3::unit_y());
         let rotation: Matrix4<f32> = q.slerp(r, f32::cos(theta2)).into();
         let translation = Matrix4::from_translation(vec3(0.0, 0.0, -8.0 * f32::sin(theta1)));
-        pipeline.set_worldviewproj(worldviewproj * translation * rotation);
+        pipeline.worldviewproj = worldviewproj * translation * rotation;
 
         pipeline.draw_indexed_lines(&model.0[..], &model.1[..], output);
         
