@@ -1,10 +1,12 @@
 use sdl2::{Sdl, VideoSubsystem};
-use crate::graphics::BitmapOutput;
 use sdl2::render::WindowCanvas;
 use sdl2::pixels::Color;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use std::time::Duration;
+
+use crate::graphics::BitmapOutput;
+use crate::scenes::Scene;
 
 const WINDOW_TITLE: &str = "Dummy Graphics Pipeline";
 const WINDOW_WIDTH: u32 = 640;
@@ -70,11 +72,9 @@ impl Framework {
         CanvasOutput::from(window.into_canvas().build().unwrap())
     }
 
-    pub fn run<R: FnMut() -> ()>(&self, mut render: R) {
+    pub fn run<S: Scene>(&self, mut scene: S) {
         let mut event_pump = self.sdl_context.event_pump().unwrap();
         'running: loop {
-            render();
-
             for event in event_pump.poll_iter() {
                 match event {
                     Event::Quit {..} |
@@ -84,6 +84,9 @@ impl Framework {
                     _ => {}
                 }
             }
+
+            scene.update();
+            scene.draw();
 
             ::std::thread::sleep(Duration::from_nanos(1_000_000_000u64 / 60));
         }
