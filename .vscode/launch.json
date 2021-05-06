@@ -8,6 +8,9 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug executable 'graphicspipeline-rust'",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
             "cargo": {
                 "args": [
                     "build",
