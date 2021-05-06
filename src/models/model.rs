@@ -2,7 +2,7 @@ use crate::graphics::{Line, Triangle, Vertex};
 
 /// A model made of a line list.
 pub struct LineList {
-    pub primitive: Vec<Line<Vertex>>,
+    pub primitives: Vec<Line<Vertex>>,
 }
 
 /// A model made of a line list with indexed vertices.
