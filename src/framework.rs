@@ -1,12 +1,8 @@
-use sdl2::{Sdl, VideoSubsystem};
+use sdl2::{EventPump, Sdl, VideoSubsystem};
 use sdl2::render::WindowCanvas;
 use sdl2::pixels::Color;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use std::time::Duration;
 
 use crate::graphics::BitmapOutput;
-use crate::scenes::Scene;
 
 const WINDOW_TITLE: &str = "Dummy Graphics Pipeline";
 const WINDOW_WIDTH: u32 = 640;
@@ -44,9 +40,10 @@ impl BitmapOutput for CanvasOutput {
         self.canvas.present();
     }
 }
-
-// Represents the application proper. Responsible for handling backend stuff for the pipeline program, 
-// such as setting up the backend libraries and systems, as well as creating and handling the windows.
+/// The backend of the application.
+///
+/// Responsible for setting up the low-level libraries and frameworks used for running the 
+/// application.
 pub struct Framework {
     sdl_context: Sdl,
     video_subsystem: VideoSubsystem,
@@ -54,6 +51,7 @@ pub struct Framework {
 
 // TODO: Introduce proper error handling
 impl Framework {
+    /// Initializes the framework's internals systems.
     pub fn init() -> Framework {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
@@ -64,6 +62,9 @@ impl Framework {
         }
     }
 
+    // TODO: Instead of returning the bitmap rendertarget itself, the framework should only 
+    // return a handle to the window, so the App shall be responsible for managing the 
+    // distribution of the rendertarget.
     pub fn create_video_output(&self) -> CanvasOutput {
         let window = self.video_subsystem.window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT)
             .position_centered()
@@ -72,23 +73,8 @@ impl Framework {
         CanvasOutput::from(window.into_canvas().build().unwrap())
     }
 
-    pub fn run<S: Scene>(&self, mut scene: S) {
-        let mut event_pump = self.sdl_context.event_pump().unwrap();
-        'running: loop {
-            for event in event_pump.poll_iter() {
-                match event {
-                    Event::Quit {..} |
-                    Event::KeyUp { keycode: Some(Keycode::Escape),.. } => {
-                        break 'running;
-                    },
-                    _ => {}
-                }
-            }
-
-            scene.update();
-            scene.draw();
-
-            ::std::thread::sleep(Duration::from_nanos(1_000_000_000u64 / 60));
-        }
+    // TODO: Abstract event queue.
+    pub fn get_event_queue(&self) -> EventPump {
+        self.sdl_context.event_pump().unwrap()
     }
 }
