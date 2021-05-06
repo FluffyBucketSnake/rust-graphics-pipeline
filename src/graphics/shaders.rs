@@ -37,6 +37,6 @@ impl Effect for BasicEffect {
     }
 
     fn ps(&self, input: &Vertex) -> Color {
-        input.color
+        crate::math::vector4_to_color(&input.color)
     }
 }

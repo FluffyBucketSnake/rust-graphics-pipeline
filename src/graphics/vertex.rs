@@ -1,19 +1,24 @@
 use cgmath::Vector4;
 use sdl2::pixels::Color;
-use std::ops::{Add, AddAssign, Div, Mul, Sub,};
+use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 #[derive(Clone, Copy)]
 pub struct Vertex {
     pub position: Vector4<f32>,
-    pub color: Color,
+    pub color: Vector4<f32>,
 }
 
 impl Vertex {
     pub fn new(x: f32, y: f32, z: f32, color: Color) -> Vertex {
         Self {
             position: Vector4::new(x, y, z, 1.0),
-            color,
+            color: crate::math::color_to_vector4(&color),
         }
+    }
+
+    pub fn interpolate(&self, other: &Self, t: f32) -> Self {
+        let delta = *other - *self;
+        *self + (t * delta)
     }
 }
 
@@ -21,19 +26,9 @@ impl Add for Vertex {
     type Output = Vertex;
     fn add(self, rhs: Vertex) -> Self::Output {
         let position = self.position + rhs.position;
+        let color = self.color + rhs.color;
 
-        // TODO: Refactor color operation code.
-        let color = Color::from((
-            match self.color.r.checked_add(rhs.color.r) { Some(v) => {v}, None => {255}, }, // R
-            match self.color.g.checked_add(rhs.color.g) { Some(v) => {v}, None => {255}, }, // G
-            match self.color.b.checked_add(rhs.color.b) { Some(v) => {v}, None => {255}, }, // B
-            match self.color.a.checked_add(rhs.color.a) { Some(v) => {v}, None => {255}, }, // A
-        ));
-        
-        Vertex {
-            position,
-            color,
-        }
+        Vertex { position, color }
     }
 }
 
@@ -45,64 +40,34 @@ impl AddAssign for Vertex {
 
 impl Div<f32> for Vertex {
     type Output = Vertex;
-    
-    fn div(self, rhs: f32) -> Self::Output { 
-        let position = self.position / rhs;
 
-        // TODO: Refactor color operation code.
-        let color = Color::from((
-            (self.color.r as f32 / rhs) as u8, // R
-            (self.color.g as f32 / rhs) as u8, // G
-            (self.color.b as f32 / rhs) as u8, // B
-            (self.color.a as f32 / rhs) as u8, // A
-        ));
-        
-        Vertex {
-            position,
-            color,
-        }
+    fn div(self, rhs: f32) -> Self::Output {
+        let position = self.position / rhs;
+        let color = self.color / rhs;
+
+        Self { position, color }
     }
 }
 
 impl Mul<Vertex> for f32 {
     type Output = Vertex;
-    
-    fn mul(self, rhs: Vertex) -> Self::Output { 
-        let position = rhs.position * self;
 
-        // TODO: Refactor color operation code.
-        let color = Color::from((
-            (rhs.color.r as f32 * self) as u8, // R
-            (rhs.color.g as f32 * self) as u8, // G
-            (rhs.color.b as f32 * self) as u8, // B
-            (rhs.color.a as f32 * self) as u8, // A
-        ));
-        
-        Vertex {
-            position,
-            color,
-        }
+    fn mul(self, rhs: Vertex) -> Self::Output {
+        let position = rhs.position * self;
+        let color = rhs.color * self;
+
+        Vertex { position, color }
     }
 }
 
 impl Mul<f32> for Vertex {
     type Output = Vertex;
-    
-    fn mul(self, rhs: f32) -> Self::Output { 
-        let position = self.position * rhs;
 
-        // TODO: Refactor color operation code.
-        let color = Color::from((
-            (self.color.r as f32 * rhs) as u8, // R
-            (self.color.g as f32 * rhs) as u8, // G
-            (self.color.b as f32 * rhs) as u8, // B
-            (self.color.a as f32 * rhs) as u8, // A
-        ));
-        
-        Vertex {
-            position,
-            color,
-        }
+    fn mul(self, rhs: f32) -> Self::Output {
+        let position = self.position * rhs;
+        let color = self.color * rhs;
+
+        Vertex { position, color }
     }
 }
 
@@ -110,18 +75,8 @@ impl Sub for Vertex {
     type Output = Vertex;
     fn sub(self, rhs: Vertex) -> Self::Output {
         let position = self.position - rhs.position;
+        let color = self.color - rhs.color;
 
-        // TODO: Refactor color operation code.
-        let color = Color::from((
-            match self.color.r.checked_sub(rhs.color.r) { Some(v) => {v}, None => {0}, }, // R
-            match self.color.g.checked_sub(rhs.color.g) { Some(v) => {v}, None => {0}, }, // G
-            match self.color.b.checked_sub(rhs.color.b) { Some(v) => {v}, None => {0}, }, // B
-            match self.color.a.checked_sub(rhs.color.a) { Some(v) => {v}, None => {0}, }, // A
-        ));
-        
-        Vertex {
-            position,
-            color,
-        }
+        Vertex { position, color }
     }
 }
