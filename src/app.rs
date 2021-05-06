@@ -35,7 +35,7 @@ impl<'f> App<'f> {
     ///
     /// The application runs at a predeterminate framerate, with the updating and drawing 
     /// routines running synchronically. First, the event queue is checked - in which events
-    /// are first handled by the application, then sent forwarded to the scene, then the current
+    /// are first handled by the application, then forwarded to the scene, then the current
     /// scene is updated and drawn, in that order.
     pub fn run(mut self) {
         let mut event_pump = self.framework.get_event_queue();
@@ -53,9 +53,9 @@ impl<'f> App<'f> {
                     },
                     _ => {}
                 }
+                scene.handle_event(event);
             }
 
-            scene.update();
             scene.draw();
 
             ::std::thread::sleep(Duration::from_nanos(1_000_000_000u64 / 60));
