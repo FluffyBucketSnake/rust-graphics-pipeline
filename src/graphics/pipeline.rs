@@ -1,7 +1,5 @@
 use cgmath::{Matrix4, Vector3, Vector4};
 
-use sdl2::pixels::Color;
-
 use std::mem::swap;
 
 use super::clipping::{clip_line, clip_triangle};
@@ -285,12 +283,9 @@ impl<E: Effect> Pipeline<E> {
     }
 
     /// Renders a flat top triangle onto the screen.
-    /// TODO: refactor this and `draw_flatbottom_triangle` functions.
-    fn draw_flattop_triangle<B: BitmapOutput>(&self, mut triangle: Triangle<Vertex>, target: &mut B) {
-        // triangle.0.color = crate::math::color_to_vector4(&Color::RED);
-        // triangle.1.color = crate::math::color_to_vector4(&Color::RED);
-        // triangle.2.color = Color::RED;
-
+    ///
+    /// This functions is a decorator for the `draw_flat_triangle` call.
+    fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
         let dit0 = triangle.2 - triangle.0;
         let dit1 = triangle.2 - triangle.1;
         let dy = dit0.position.y;
@@ -302,15 +297,12 @@ impl<E: Effect> Pipeline<E> {
     }
 
     /// Renders a flat bottom triangle onto the screen.
-    /// TODO: refactor this and `draw_flattop_triangle` functions.
+    ///
+    /// This functions is a decorator for the `draw_flat_triangle` call.
     fn draw_flatbottom_triangle<B: BitmapOutput>(&self,
-        mut triangle: Triangle<Vertex>,
+        triangle: Triangle<Vertex>,
         target: &mut B,
     ) {
-        // triangle.0.color = crate::math::color_to_vector4(&Color::BLUE);
-        // triangle.1.color = Color::BLUE;
-        // triangle.2.color = Color::BLUE;
-
         let dit0 = triangle.1 - triangle.0;
         let dit1 = triangle.2 - triangle.0;
         let dy = dit0.position.y;
@@ -351,7 +343,9 @@ impl<E: Effect> Pipeline<E> {
             let mut x = x_start;
             while x < x_end {
                 target.put_pixel((x as u32, y as u32), self.effect.ps(&it));
+
                 x += 1.0;
+                it += dv;
             }
 
             // Increment y and interpolants.
