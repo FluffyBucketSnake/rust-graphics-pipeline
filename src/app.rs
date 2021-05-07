@@ -50,12 +50,8 @@ impl<'f> App<'f> {
     /// scene is updated and drawn, in that order.
     pub fn run(mut self) {
         let mut event_pump = self.framework.get_event_queue();
-        let length = self.scenes.len();
         
         'running: loop {
-            // Fetch the current scene this frame.
-            let scene = &mut self.scenes[self.current];
-
             // Check event queue.
             for event in event_pump.poll_iter() {
                 match event {
@@ -66,17 +62,20 @@ impl<'f> App<'f> {
                     Event::KeyUp { keycode: Some(Keycode::LeftBracket), ..} => {
                         self.current = match self.current.checked_sub(1) {
                             Some(v) => v,
-                            None => length - 1,
+                            None => self.scenes.len() - 1,
                         }
                     },
                     Event::KeyUp { keycode: Some(Keycode::RightBracket), ..} => {
-                        self.current = (self.current + 1) % length;
+                        self.current = (self.current + 1) % self.scenes.len();
                     },
                     _ => {}
                 }
-                scene.handle_event(event);
             }
 
+            // Fetch the current scene this frame.
+            let scene = &mut self.scenes[self.current];
+            
+            scene.handle_input(event_pump.keyboard_state(), event_pump.mouse_state());
             scene.draw();
 
             ::std::thread::sleep(Duration::from_nanos(1_000_000_000u64 / 60));

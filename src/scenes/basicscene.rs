@@ -1,8 +1,6 @@
 use cgmath::{perspective, point3, vec3, Matrix4, Point3, Rad, Vector3};
-use sdl2::{
-    event::Event,
-    keyboard::{Keycode, Mod},
-};
+use sdl2::keyboard::{KeyboardState, Scancode};
+use sdl2::mouse::MouseState;
 
 use crate::framework::{Window, WindowTarget};
 use crate::graphics::{BitmapOutput, Pipeline};
@@ -99,73 +97,42 @@ impl Scene for BasicScene {
         self.output.present();
     }
 
-    fn handle_event(&mut self, event: Event) {
+    fn handle_input(&mut self, keyboard: KeyboardState, _: MouseState) {
         const CAMSPEED: f32 = 1.0 / 60.0;
         const ROTSPEED: f32 = (2.0 * std::f32::consts::PI) / (2.0 * 60.0);
-        match event {
-            // Camera controls.
-            Event::KeyDown {
-                keycode: Some(Keycode::W),
-                ..
-            } => {
-                self.eye.z += CAMSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::A),
-                ..
-            } => {
-                self.eye.x -= CAMSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::S),
-                ..
-            } => {
-                self.eye.z -= CAMSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::D),
-                ..
-            } => {
-                self.eye.x += CAMSPEED;
-            }
-            Event::KeyDown {
-                keymod: Mod::LSHIFTMOD,
-                ..
-            } => {
-                self.eye.y -= CAMSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::Space),
-                ..
-            } => {
-                self.eye.y += CAMSPEED;
-            }
-            // Rotation controls.
-            Event::KeyDown {
-                keycode: Some(Keycode::Up),
-                ..
-            } => {
-                self.pitch += ROTSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::Left),
-                ..
-            } => {
-                self.yaw += ROTSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::Down),
-                ..
-            } => {
-                self.pitch -= ROTSPEED;
-            }
-            Event::KeyDown {
-                keycode: Some(Keycode::Right),
-                ..
-            } => {
-                self.yaw -= ROTSPEED;
-            }
-            _ => {}
+
+        // Camera controls
+        if keyboard.is_scancode_pressed(Scancode::W) {
+            self.eye.z += CAMSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::A) {
+            self.eye.x -= CAMSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::S) {
+            self.eye.z -= CAMSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::D) {
+            self.eye.x += CAMSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::LShift) {
+            self.eye.y -= CAMSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::Space) {
+            self.eye.y += CAMSPEED;
+        }
+
+        // Rotation controls
+        if keyboard.is_scancode_pressed(Scancode::Up) {
+            self.pitch += ROTSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::Left) {
+            self.yaw += ROTSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::Down) {
+            self.pitch -= ROTSPEED;
+        }
+        if keyboard.is_scancode_pressed(Scancode::Right) {
+            self.yaw -= ROTSPEED;
         }
     }
 }
