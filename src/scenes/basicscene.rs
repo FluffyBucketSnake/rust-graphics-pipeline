@@ -4,7 +4,7 @@ use sdl2::{
     keyboard::{Keycode, Mod},
 };
 
-use crate::framework::{CanvasOutput, Framework};
+use crate::framework::{Window, WindowTarget};
 use crate::graphics::{BitmapOutput, Pipeline};
 use crate::models::{IndexedLineList, IndexedTriangleList, LineList, TriangleList};
 
@@ -20,7 +20,7 @@ pub enum Model {
 
 /// A scene for showing a model under a basic pipeline.
 pub struct BasicScene {
-    output: CanvasOutput,
+    output: WindowTarget,
     pipeline: Pipeline,
 
     model: Model,
@@ -31,9 +31,9 @@ pub struct BasicScene {
 }
 
 impl BasicScene {
-    pub fn new(framework: &Framework, model: Model) -> Self {
+    pub fn new(window: &Window, model: Model) -> Self {
         Self {
-            output: framework.create_video_output(),
+            output: window.get_rendertarget(),
             pipeline: Pipeline::new(),
 
             model,
