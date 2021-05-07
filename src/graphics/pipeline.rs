@@ -1,9 +1,13 @@
+use cgmath::{Matrix4, Vector3, Vector4};
+
+use sdl2::pixels::Color;
+
+use std::mem::swap;
+
 use super::clipping::{clip_line, clip_triangle};
 use super::primitives::{Line, Triangle, WindingOrder};
 use super::vertex::Vertex;
 use super::{BitmapOutput, Effect};
-use cgmath::{Matrix4, Vector3, Vector4};
-use std::mem::swap;
 
 #[allow(dead_code)]
 pub enum FillMode {
