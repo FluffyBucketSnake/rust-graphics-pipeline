@@ -31,8 +31,8 @@ impl Cube {
     }
 }
 
-impl Into<IndexedTriangleList> for &Cube {
-    fn into(self) -> IndexedTriangleList {
+impl Into<IndexedTriangleList<ColorVertex>> for &Cube {
+    fn into(self) -> IndexedTriangleList<ColorVertex> {
         let vertices = self.build_vertices();
         
         let mut primitives = Vec::new();
@@ -53,8 +53,8 @@ impl Into<IndexedTriangleList> for &Cube {
     }
 }
 
-impl Into<IndexedLineList> for &Cube {
-    fn into(self) -> IndexedLineList {
+impl Into<IndexedLineList<ColorVertex>> for &Cube {
+    fn into(self) -> IndexedLineList<ColorVertex> {
         let vertices = self.build_vertices();
 
         let mut primitives = Vec::new();

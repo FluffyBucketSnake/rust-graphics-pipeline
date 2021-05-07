@@ -1,6 +1,24 @@
 use cgmath::Vector4;
+
 use sdl2::pixels::Color;
-use std::ops::{Add, AddAssign, Div, Mul, Sub};
+
+use std::ops::{Add, AddAssign, Div, Mul, Sub, SubAssign};
+
+pub trait Vertex:
+    Add<Output = Self>
+    + Sub<Output = Self>
+    + AddAssign
+    + SubAssign
+    + Mul<f32, Output = Self>
+    + Div<f32, Output = Self>
+    + Clone
+    + Copy
+    + Sized
+{
+    fn position(&self) -> Vector4<f32>;
+    fn to_screen_coords(&mut self, width: f32, height: f32);
+    fn interpolate(&self, other: &Self, t: f32) -> Self;
+}
 
 #[derive(Clone, Copy)]
 pub struct ColorVertex {
@@ -15,10 +33,24 @@ impl ColorVertex {
             color: crate::math::color_to_vector4(&color),
         }
     }
+}
 
-    pub fn interpolate(&self, other: &Self, t: f32) -> Self {
-        let delta = *other - *self;
-        *self + (t * delta)
+impl Vertex for ColorVertex {
+    fn position(&self) -> Vector4<f32> {
+        self.position
+    }
+
+    fn to_screen_coords(&mut self, width: f32, height: f32) {
+        self.position /= self.position.w;
+
+        self.position.x += 1.0;
+        self.position.x *= width / 2.0;
+        self.position.y -= 1.0;
+        self.position.y *= -height / 2.0;
+    }
+
+    fn interpolate(&self, other: &Self, t: f32) -> Self {
+        (*self * (1.0 - t)) + (*other * t)
     }
 }
 
@@ -34,7 +66,15 @@ impl Add for ColorVertex {
 
 impl AddAssign for ColorVertex {
     fn add_assign(&mut self, rhs: ColorVertex) {
-        *self = *self + rhs;
+        self.position += rhs.position;
+        self.color += rhs.color;
+    }
+}
+
+impl SubAssign for ColorVertex {
+    fn sub_assign(&mut self, rhs: ColorVertex) {
+        self.position -= rhs.position;
+        self.color -= rhs.color;
     }
 }
 
@@ -46,17 +86,6 @@ impl Div<f32> for ColorVertex {
         let color = self.color / rhs;
 
         Self { position, color }
-    }
-}
-
-impl Mul<ColorVertex> for f32 {
-    type Output = ColorVertex;
-
-    fn mul(self, rhs: ColorVertex) -> Self::Output {
-        let position = rhs.position * self;
-        let color = rhs.color * self;
-
-        ColorVertex { position, color }
     }
 }
 

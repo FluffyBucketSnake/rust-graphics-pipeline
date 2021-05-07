@@ -2,24 +2,24 @@ use cgmath::{perspective, point3, vec3, Matrix4, Point3, Rad, Vector3};
 use sdl2::keyboard::{KeyboardState, Scancode};
 use sdl2::mouse::MouseState;
 
-use crate::{framework::{Window, WindowTarget}};
-use crate::graphics::{BasicEffect, BitmapOutput, Pipeline};
+use crate::framework::{Window, WindowTarget};
+use crate::graphics::{BasicEffect, BitmapOutput, ColorVertex, Pipeline};
 use crate::models::{IndexedLineList, IndexedTriangleList, LineList, TriangleList};
 
 use super::Scene;
 
 #[allow(dead_code)]
 pub enum Model {
-    LineList(LineList),
-    IndexedLineList(IndexedLineList),
-    TriangleList(TriangleList),
-    IndexedTriangleList(IndexedTriangleList),
+    LineList(LineList<ColorVertex>),
+    IndexedLineList(IndexedLineList<ColorVertex>),
+    TriangleList(TriangleList<ColorVertex>),
+    IndexedTriangleList(IndexedTriangleList<ColorVertex>),
 }
 
 /// A scene for showing a model under a basic pipeline.
 pub struct BasicScene {
     output: WindowTarget,
-    pipeline: Pipeline<BasicEffect>,
+    pipeline: Pipeline<ColorVertex, BasicEffect>,
 
     model: Model,
 

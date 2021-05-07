@@ -3,11 +3,11 @@ use cgmath::Matrix4;
 
 use crate::math::Color;
 
-use super::ColorVertex;
+use super::{ColorVertex, Vertex};
 
-pub trait Effect {
-    fn vs(&self, input: &ColorVertex) -> ColorVertex;
-    fn ps(&self, input: &ColorVertex) -> Color;
+pub trait Effect<V: Vertex> {
+    fn vs(&self, input: &V) -> V;
+    fn ps(&self, input: &V) -> Color;
 }
 
 pub struct BasicEffect {
@@ -26,7 +26,7 @@ impl Default for BasicEffect {
     }
 }
 
-impl Effect for BasicEffect {
+impl Effect<ColorVertex> for BasicEffect {
     fn vs(&self, input: &ColorVertex) -> ColorVertex {
         let mut vertex = *input;
 
