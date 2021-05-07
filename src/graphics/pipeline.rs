@@ -1,8 +1,7 @@
 use super::clipping::{clip_line, clip_triangle};
 use super::primitives::{Line, Triangle, WindingOrder};
 use super::vertex::Vertex;
-use super::BitmapOutput;
-use crate::math::mix;
+use super::{BitmapOutput, Effect};
 use cgmath::{Matrix4, Vector3, Vector4};
 use std::mem::swap;
 
@@ -16,19 +15,19 @@ pub enum FillMode {
 ///
 /// It accepts a collection of primitives as input, while output a raster render of the scene
 /// into the specified `BitmapOutput`.
-pub struct Pipeline {
+pub struct Pipeline<E: Effect> {
     pub fill_mode: FillMode,
     pub front_face: WindingOrder,
-    pub worldviewproj: Matrix4<f32>,
+    pub effect: E,
 }
 
-impl Pipeline {
+impl<E: Effect> Pipeline<E> {
     /// Constructs a new `Pipeline`.
-    pub fn new() -> Self {
+    pub fn new(effect: E) -> Self {
         Self {
             fill_mode: FillMode::Solid,
             front_face: WindingOrder::CounterClockwise,
-            worldviewproj: Matrix4::from_scale(1.0),
+            effect,
         }
     }
 
@@ -119,10 +118,9 @@ impl Pipeline {
         }
     }
 
-    /// Executes the vertex processor onto the input vertex. To be replaced by the vertex shader.
+    /// Executes the vertex processor onto the input vertex.
     fn vertex_processor(&self, vertex: &mut Vertex) {
-        // Apply the World-View-Projection to the vertex position.
-        vertex.position = self.worldviewproj * vertex.position;
+        *vertex = self.effect.vs(vertex);
     }
 
     /// Applies the primitive processing stage onto the input line.
@@ -206,19 +204,19 @@ impl Pipeline {
         // Line traversal.
         let delta = line.1 - line.0;
         let step = f32::max(delta.position.x.abs(), delta.position.y.abs()); // Largest axis difference.
-        let derivant = delta / step; // Increment for each axis.
-        let mut integrant = line.0;
+        let dv = delta / step; // Increment for each axis.
+        let mut it = line.0;
         let mut i: f32 = 0.0;
         while i < step {
             let Vertex {
                 position: Vector4 { x, y, z: _, w: _ },
                 color: _,
-            } = integrant;
+            } = it;
             target.put_pixel(
                 (x as u32, y as u32),
-                mix(line.0.color, line.1.color, i / f32::max(step - 1.0, 1.0)),
+                self.effect.ps(&it),
             );
-            integrant += derivant;
+            it += dv;
             i += 1.0;
         }
     }
@@ -266,10 +264,7 @@ impl Pipeline {
                     let a = (v1.position - v0.position).y / (v2.position - v0.position).y;
 
                     // TODO: Create a dedicated interpolation function/trait.
-                    let vi = Vertex {
-                        position: v0.position + ((v2.position - v0.position) * a),
-                        color: mix(v0.color, v2.color, a),
-                    };
+                    let vi = Vertex::interpolate(v0, v2, a);
 
                     if v1.position.x > vi.position.x {
                         // Major left
@@ -287,79 +282,78 @@ impl Pipeline {
 
     /// Renders a flat top triangle onto the screen.
     /// TODO: refactor this and `draw_flatbottom_triangle` functions.
-    fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
-        let Triangle(v0, v1, v2) = triangle;
+    fn draw_flattop_triangle<B: BitmapOutput>(&self, mut triangle: Triangle<Vertex>, target: &mut B) {
+        // triangle.0.color = crate::math::color_to_vector4(&Color::RED);
+        // triangle.1.color = crate::math::color_to_vector4(&Color::RED);
+        // triangle.2.color = Color::RED;
 
-        // Calculate line slopes.
-        let m1 = (v2.position.x - v0.position.x) / (v2.position.y - v0.position.y);
-        let m2 = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
+        let dit0 = triangle.2 - triangle.0;
+        let dit1 = triangle.2 - triangle.1;
+        let dy = dit0.position.y;
 
-        // Iterate over each horizontal line.
-        let y_start = f32::max(f32::ceil(v0.position.y - 0.5), 0.0);
-        let y_end = f32::min(f32::ceil(v2.position.y - 0.5), target.size().1 as f32);
-        let mut y = y_start;
+        let dv0 = dit0 / dy;
+        let dv1 = dit1 / dy;
 
-        while y < y_end {
-            // Calculate the beginning and end of this line.
-            let lx1 = m1 * (y + 0.5 - v0.position.y) + v0.position.x;
-            let lx2 = m2 * (y + 0.5 - v0.position.y) + v1.position.x;
-            let lc1 = mix(v0.color, v2.color, (y + 0.5 - y_start) / (y_end - y_start));
-            let lc2 = mix(v1.color, v2.color, (y + 0.5 - y_start) / (y_end - y_start));
-
-            // Calculate the pixel indices.
-            let x_start = f32::max(f32::ceil(lx1 - 0.5), 0.0);
-            let x_end = f32::min(f32::ceil(lx2 - 0.5), target.size().0 as f32);
-            let mut x = x_start;
-
-            while x < x_end {
-                let c = mix(lc1, lc2, (x + 0.5 - x_start) / (x_end - x_start));
-                target.put_pixel((x as u32, y as u32), c);
-                x += 1.0;
-            }
-
-            // Go to the next line.
-            y += 1.0;
-        }
+        self.draw_flat_triangle(triangle.0, triangle.1, dv0, dv1, dy, target);
     }
 
     /// Renders a flat bottom triangle onto the screen.
     /// TODO: refactor this and `draw_flattop_triangle` functions.
-    fn draw_flatbottom_triangle<B: BitmapOutput>(
-        &self,
-        triangle: Triangle<Vertex>,
+    fn draw_flatbottom_triangle<B: BitmapOutput>(&self,
+        mut triangle: Triangle<Vertex>,
         target: &mut B,
     ) {
-        let Triangle(v0, v1, v2) = triangle;
+        // triangle.0.color = crate::math::color_to_vector4(&Color::BLUE);
+        // triangle.1.color = Color::BLUE;
+        // triangle.2.color = Color::BLUE;
 
-        // Calculate line slopes.
-        let m1 = (v1.position.x - v0.position.x) / (v1.position.y - v0.position.y);
-        let m2 = (v2.position.x - v0.position.x) / (v2.position.y - v0.position.y);
+        let dit0 = triangle.1 - triangle.0;
+        let dit1 = triangle.2 - triangle.0;
+        let dy = dit0.position.y;
 
-        // Iterate over each horizontal line.
-        let y_start = f32::max(f32::ceil(v0.position.y - 0.5), 0.0);
-        let y_end = f32::min(f32::ceil(v2.position.y - 0.5), target.size().1 as f32);
+        let dv0 = dit0 / dy;
+        let dv1 = dit1 / dy;
+
+        self.draw_flat_triangle(triangle.0, triangle.0, dv0, dv1, dy, target);
+    }
+
+    fn draw_flat_triangle<B: BitmapOutput>(&self, it0: Vertex, it1: Vertex, dv0: Vertex, dv1: Vertex, height: f32, target: &mut B) {
+        // Calculate start and end scanlines.
+        let y_start = f32::max(f32::ceil(it0.position.y - 0.5), 0.0);
+        let y_end = f32::min(f32::ceil(it0.position.y + height - 0.5), target.size().1 as f32);
+
+        // Left and right edge interpolants
+        let mut it_edge0 = it0 + dv0 * (y_start + 0.5 - it0.position.y);
+        let mut it_edge1 = it1 + dv1 * (y_start + 0.5 - it1.position.y);
+
+        // Calculate each scanline.
         let mut y = y_start;
-
         while y < y_end {
-            // Calculate the beginning and end of this line.
-            let lx1 = m1 * (y + 0.5 - v0.position.y) + v0.position.x;
-            let lx2 = m2 * (y + 0.5 - v0.position.y) + v0.position.x;
-            let lc1 = mix(v0.color, v1.color, (y + 0.5 - y_start) / (y_end - y_start));
-            let lc2 = mix(v0.color, v2.color, (y + 0.5 - y_start) / (y_end - y_start));
+            // Calculate the start and end pixel positions.
+            let x_start = f32::max(f32::ceil(it_edge0.position.x - 0.5), 0.0);
+            let x_end = f32::min(f32::ceil(it_edge1.position.x - 0.5), target.size().0 as f32);
 
-            // Calculate the pixel indices.
-            let x_start = f32::max(f32::ceil(lx1 - 0.5), 0.0);
-            let x_end = f32::min(f32::ceil(lx2 - 0.5), target.size().0 as f32);
+            // Scanline interpolant
+            let mut it = it_edge0;
+
+            // Calculate scanline derivant.
+            let dx = it_edge1.position.x - it.position.x;
+            let dv = (it_edge1 - it) / dx;
+
+            // Prestep interpolant.
+            it += dv * (x_start + 0.5 - it.position.x);
+
+            // Draw each pixel.
             let mut x = x_start;
-
             while x < x_end {
-                let c = mix(lc1, lc2, (x + 0.5 - x_start) / (x_end - x_start));
-                target.put_pixel((x as u32, y as u32), c);
+                target.put_pixel((x as u32, y as u32), self.effect.ps(&it));
                 x += 1.0;
             }
 
-            // Go to the next line.
+            // Increment y and interpolants.
             y += 1.0;
+            it_edge0 += dv0;
+            it_edge1 += dv1;
         }
     }
 }
