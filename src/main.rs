@@ -23,8 +23,11 @@ fn main() {
     let mut app = App::init(&framework);
 
     let cube = Cube::new(1.0);
-    let scene = BasicScene::new(&framework, Model::IndexedLineList((&cube).into()));
-    app.add_scene(scene);
+
+    let scene0 = BasicScene::new(app.window(), Model::IndexedLineList((&cube).into()));
+    app.add_scene(scene0);
+    let scene1 = BasicScene::new(app.window(), Model::IndexedTriangleList((&cube).into()));
+    app.add_scene(scene1);
 
     app.run();
 }
