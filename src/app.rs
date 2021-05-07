@@ -39,6 +39,7 @@ impl<'f> App<'f> {
     /// scene is updated and drawn, in that order.
     pub fn run(mut self) {
         let mut event_pump = self.framework.get_event_queue();
+        let length = self.scenes.len();
         
         'running: loop {
             // Fetch the current scene this frame.
@@ -50,6 +51,15 @@ impl<'f> App<'f> {
                     Event::Quit {..} |
                     Event::KeyUp { keycode: Some(Keycode::Escape),.. } => {
                         break 'running;
+                    },
+                    Event::KeyUp { keycode: Some(Keycode::LeftBracket), ..} => {
+                        self.current = match self.current.checked_sub(1) {
+                            Some(v) => v,
+                            None => length - 1,
+                        }
+                    },
+                    Event::KeyUp { keycode: Some(Keycode::RightBracket), ..} => {
+                        self.current = (self.current + 1) % length;
                     },
                     _ => {}
                 }
