@@ -15,15 +15,20 @@ mod tests;
 use app::App;
 
 use crate::framework::Framework;
-use crate::scenes::LineCubeScene;
+use crate::models::Cube;
+use crate::scenes::{BasicScene, Model};
 
 fn main() {
     let framework = Framework::init();
 
     let mut app = App::init(&framework);
-    
-    let scene = LineCubeScene::new(&framework);
-    app.add_scene(scene);
+
+    let cube = Cube::new(1.0);
+
+    let scene0 = BasicScene::new(app.window(), Model::IndexedLineList((&cube).into()));
+    app.add_scene(scene0);
+    let scene1 = BasicScene::new(app.window(), Model::IndexedTriangleList((&cube).into()));
+    app.add_scene(scene1);
 
     app.run();
 }

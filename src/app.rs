@@ -3,7 +3,7 @@ use std::time::Duration;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
-use crate::framework::Framework;
+use crate::framework::{Framework, Window};
 use crate::scenes::Scene;
 
 /// The main application class.
@@ -14,7 +14,12 @@ pub struct App<'f> {
     current: usize,
     scenes: Vec<Box<dyn Scene>>,
     framework: &'f Framework,
+    window: Window,
 }
+
+const WINDOW_TITLE: &str = "Dummy Graphics Pipeline";
+const WINDOW_WIDTH: u32 = 640;
+const WINDOW_HEIGHT: u32 = 640;
 
 impl<'f> App<'f> {
     /// Initializes the application using the specified framework.
@@ -23,7 +28,13 @@ impl<'f> App<'f> {
             current : 0,
             scenes: Vec::new(),
             framework,
+            window: framework.create_window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT)
         }
+    }
+
+    /// Returns a reference to the application window.
+    pub fn window(&self) -> &Window {
+        &self.window
     }
 
     /// Adds the scene into the application.
@@ -41,9 +52,6 @@ impl<'f> App<'f> {
         let mut event_pump = self.framework.get_event_queue();
         
         'running: loop {
-            // Fetch the current scene this frame.
-            let scene = &mut self.scenes[self.current];
-
             // Check event queue.
             for event in event_pump.poll_iter() {
                 match event {
@@ -51,11 +59,23 @@ impl<'f> App<'f> {
                     Event::KeyUp { keycode: Some(Keycode::Escape),.. } => {
                         break 'running;
                     },
+                    Event::KeyUp { keycode: Some(Keycode::LeftBracket), ..} => {
+                        self.current = match self.current.checked_sub(1) {
+                            Some(v) => v,
+                            None => self.scenes.len() - 1,
+                        }
+                    },
+                    Event::KeyUp { keycode: Some(Keycode::RightBracket), ..} => {
+                        self.current = (self.current + 1) % self.scenes.len();
+                    },
                     _ => {}
                 }
-                scene.handle_event(event);
             }
 
+            // Fetch the current scene this frame.
+            let scene = &mut self.scenes[self.current];
+            
+            scene.handle_input(event_pump.keyboard_state(), event_pump.mouse_state());
             scene.draw();
 
             ::std::thread::sleep(Duration::from_nanos(1_000_000_000u64 / 60));

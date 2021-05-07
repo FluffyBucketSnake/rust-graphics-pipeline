@@ -1,4 +1,5 @@
-use sdl2::event::Event;
+use sdl2::keyboard::KeyboardState;
+use sdl2::mouse::MouseState;
 
 /// View scenes interface.
 ///
@@ -6,5 +7,6 @@ use sdl2::event::Event;
 pub trait Scene {
     fn draw(&mut self);
 
-    fn handle_event(&mut self, event: Event);
+    // TODO: Create Keyboard and Mouse abstractions.
+    fn handle_input(&mut self, keyboard: KeyboardState, mouse: MouseState);
 }
