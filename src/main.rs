@@ -13,17 +13,16 @@ mod scenes;
 mod tests;
 
 use app::App;
-use framework::Framework;
-use models::Cube;
-use scenes::{BasicScene, Model};
+
+use crate::framework::Framework;
+use crate::scenes::LineCubeScene;
 
 fn main() {
     let framework = Framework::init();
 
     let mut app = App::init(&framework);
-
-    let cube = Cube::new(1.0);
-    let scene = BasicScene::new(&framework, Model::IndexedLineList((&cube).into()));
+    
+    let scene = LineCubeScene::new(&framework);
     app.add_scene(scene);
 
     app.run();

@@ -1,6 +1,6 @@
 mod scene;
 
-mod basicscene;
+mod linecubescene;
 
-pub use self::scene::*;
-pub use self::basicscene::*;
+pub use self::scene::Scene;
+pub use self::linecubescene::LineCubeScene;
