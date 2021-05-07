@@ -4,7 +4,7 @@ use std::mem::swap;
 
 use super::clipping::{clip_line, clip_triangle};
 use super::primitives::{Line, Triangle, WindingOrder};
-use super::vertex::Vertex;
+use super::vertex::ColorVertex;
 use super::{BitmapOutput, Effect};
 
 #[allow(dead_code)]
@@ -35,7 +35,7 @@ impl<E: Effect> Pipeline<E> {
 
     /// Draws multiple lines onto the render target.
     #[allow(dead_code)]
-    pub fn draw_lines<B: BitmapOutput>(&self, primitives: &[Line<Vertex>], target: &mut B) {
+    pub fn draw_lines<B: BitmapOutput>(&self, primitives: &[Line<ColorVertex>], target: &mut B) {
         // Copy input.
         let primitives = primitives.to_vec();
 
@@ -55,7 +55,7 @@ impl<E: Effect> Pipeline<E> {
     #[allow(dead_code)]
     pub fn draw_indexed_lines<B: BitmapOutput>(
         &self,
-        vertices: &[Vertex],
+        vertices: &[ColorVertex],
         primitives: &[Line<usize>],
         target: &mut B,
     ) {
@@ -77,7 +77,7 @@ impl<E: Effect> Pipeline<E> {
 
     /// Draws multiple triangles onto the render target.
     #[allow(dead_code)]
-    pub fn draw_triangles<B: BitmapOutput>(&self, primitives: &[Triangle<Vertex>], target: &mut B) {
+    pub fn draw_triangles<B: BitmapOutput>(&self, primitives: &[Triangle<ColorVertex>], target: &mut B) {
         // Copy input buffer.
         let primitives = primitives.to_vec();
 
@@ -96,7 +96,7 @@ impl<E: Effect> Pipeline<E> {
     #[allow(dead_code)]
     pub fn draw_indexed_triangles<B: BitmapOutput>(
         &self,
-        vertices: &[Vertex],
+        vertices: &[ColorVertex],
         primitives: &[Triangle<usize>],
         target: &mut B,
     ) {
@@ -121,13 +121,13 @@ impl<E: Effect> Pipeline<E> {
     }
 
     /// Executes the vertex processor onto the input vertex.
-    fn vertex_processor(&self, vertex: &mut Vertex) {
+    fn vertex_processor(&self, vertex: &mut ColorVertex) {
         *vertex = self.effect.vs(vertex);
     }
 
     /// Applies the primitive processing stage onto the input line.
     /// Since lines can't go through front face culling, this method only clips the line.
-    fn line_processor<B: BitmapOutput>(&self, mut line: Line<Vertex>, target: &mut B) {
+    fn line_processor<B: BitmapOutput>(&self, mut line: Line<ColorVertex>, target: &mut B) {
         // Clip lines outside the window.
         if let Some(cline) = clip_line(line) {
             line = cline;
@@ -155,7 +155,7 @@ impl<E: Effect> Pipeline<E> {
     ///
     /// First, the triangle is culled, then it's clipped against the view frustum, then each
     /// resulting triangle is sent for postprocessing.
-    fn triangle_processor<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
+    fn triangle_processor<B: BitmapOutput>(&self, triangle: Triangle<ColorVertex>, target: &mut B) {
         // Face culling.
         match (self.front_face, triangle.order()) {
             (WindingOrder::CounterClockwise, WindingOrder::Clockwise) => {
@@ -181,7 +181,7 @@ impl<E: Effect> Pipeline<E> {
     }
 
     /// Executes the post-clipping processing stage over the input triangle
-    fn triangle_postprocessor<B: BitmapOutput>(&self, mut triangle: Triangle<Vertex>, target: &mut B) {
+    fn triangle_postprocessor<B: BitmapOutput>(&self, mut triangle: Triangle<ColorVertex>, target: &mut B) {
         // Perspective divide.
         triangle.0.position /= triangle.0.position.w;
         triangle.1.position /= triangle.1.position.w;
@@ -202,7 +202,7 @@ impl<E: Effect> Pipeline<E> {
     }
 
     /// Renders the line onto the render target. Uses the DDA algorithm.
-    fn render_line<B: BitmapOutput>(&self, line: Line<Vertex>, target: &mut B) {
+    fn render_line<B: BitmapOutput>(&self, line: Line<ColorVertex>, target: &mut B) {
         // Line traversal.
         let delta = line.1 - line.0;
         let step = f32::max(delta.position.x.abs(), delta.position.y.abs()); // Largest axis difference.
@@ -210,7 +210,7 @@ impl<E: Effect> Pipeline<E> {
         let mut it = line.0;
         let mut i: f32 = 0.0;
         while i < step {
-            let Vertex {
+            let ColorVertex {
                 position: Vector4 { x, y, z: _, w: _ },
                 color: _,
             } = it;
@@ -224,7 +224,7 @@ impl<E: Effect> Pipeline<E> {
     }
 
     /// Renders the line onto the render target.
-    fn render_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
+    fn render_triangle<B: BitmapOutput>(&self, triangle: Triangle<ColorVertex>, target: &mut B) {
         match self.fill_mode {
             FillMode::Wireframe => {
                 self.render_line(Line(triangle.0, triangle.1), target);
@@ -266,7 +266,7 @@ impl<E: Effect> Pipeline<E> {
                     let a = (v1.position - v0.position).y / (v2.position - v0.position).y;
 
                     // TODO: Create a dedicated interpolation function/trait.
-                    let vi = Vertex::interpolate(v0, v2, a);
+                    let vi = ColorVertex::interpolate(v0, v2, a);
 
                     if v1.position.x > vi.position.x {
                         // Major left
@@ -285,7 +285,7 @@ impl<E: Effect> Pipeline<E> {
     /// Renders a flat top triangle onto the screen.
     ///
     /// This functions is a decorator for the `draw_flat_triangle` call.
-    fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<Vertex>, target: &mut B) {
+    fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<ColorVertex>, target: &mut B) {
         let dit0 = triangle.2 - triangle.0;
         let dit1 = triangle.2 - triangle.1;
         let dy = dit0.position.y;
@@ -300,7 +300,7 @@ impl<E: Effect> Pipeline<E> {
     ///
     /// This functions is a decorator for the `draw_flat_triangle` call.
     fn draw_flatbottom_triangle<B: BitmapOutput>(&self,
-        triangle: Triangle<Vertex>,
+        triangle: Triangle<ColorVertex>,
         target: &mut B,
     ) {
         let dit0 = triangle.1 - triangle.0;
@@ -313,7 +313,7 @@ impl<E: Effect> Pipeline<E> {
         self.draw_flat_triangle(triangle.0, triangle.0, dv0, dv1, dy, target);
     }
 
-    fn draw_flat_triangle<B: BitmapOutput>(&self, it0: Vertex, it1: Vertex, dv0: Vertex, dv1: Vertex, height: f32, target: &mut B) {
+    fn draw_flat_triangle<B: BitmapOutput>(&self, it0: ColorVertex, it1: ColorVertex, dv0: ColorVertex, dv1: ColorVertex, height: f32, target: &mut B) {
         // Calculate start and end scanlines.
         let y_start = f32::max(f32::ceil(it0.position.y - 0.5), 0.0);
         let y_end = f32::min(f32::ceil(it0.position.y + height - 0.5), target.size().1 as f32);

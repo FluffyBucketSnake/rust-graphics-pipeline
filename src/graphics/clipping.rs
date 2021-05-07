@@ -1,4 +1,4 @@
-use super::vertex::Vertex;
+use super::vertex::ColorVertex;
 use super::{Line, Triangle};
 use bitflags::bitflags;
 use cgmath::Vector4;
@@ -45,7 +45,7 @@ fn compute_outcode(position: Vector4<f32>) -> OutCode {
 }
 
 /// Clips the line against a unit view frustum.
-pub fn clip_line(line: Line<Vertex>) -> Option<Line<Vertex>> {
+pub fn clip_line(line: Line<ColorVertex>) -> Option<Line<ColorVertex>> {
     let Line(mut e0, mut e1) = line;
 
     // Calculate where the endpoints are in relation to the clipping rectangle.
@@ -117,7 +117,7 @@ pub fn clip_line(line: Line<Vertex>) -> Option<Line<Vertex>> {
 }
 
 /// Clips the triangle to the front-face or culls it to the back-face.
-pub fn clip_triangle(triangle: Triangle<Vertex>) -> ClippedTriangle<Vertex> {
+pub fn clip_triangle(triangle: Triangle<ColorVertex>) -> ClippedTriangle<ColorVertex> {
     // Cull tests
     if  triangle.0.position.x < -triangle.0.position.w
         && triangle.1.position.x < -triangle.1.position.w
@@ -181,7 +181,7 @@ pub fn clip_triangle(triangle: Triangle<Vertex>) -> ClippedTriangle<Vertex> {
 }
 
 /// Clips a single vertex from the triangle. Creates two new triangles.
-fn clip_one_vertex(v0: Vertex, v1: Vertex, v2: Vertex) -> ClippedTriangle<Vertex> {
+fn clip_one_vertex(v0: ColorVertex, v1: ColorVertex, v2: ColorVertex) -> ClippedTriangle<ColorVertex> {
     let delta1 = v1.position - v0.position;
     let delta2 = v2.position - v0.position;
 
@@ -195,7 +195,7 @@ fn clip_one_vertex(v0: Vertex, v1: Vertex, v2: Vertex) -> ClippedTriangle<Vertex
 }
 
 /// Clips two vertices from the triangle. Creates only one triangle.
-fn clip_two_vertices(v0: Vertex, v1: Vertex, v2: Vertex) -> ClippedTriangle<Vertex> {
+fn clip_two_vertices(v0: ColorVertex, v1: ColorVertex, v2: ColorVertex) -> ClippedTriangle<ColorVertex> {
     let delta1 = v2.position - v0.position;
     let delta2 = v2.position - v1.position;
 

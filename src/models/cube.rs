@@ -1,6 +1,6 @@
 use sdl2::pixels::Color;
 
-use crate::graphics::{Line, Triangle, Vertex};
+use crate::graphics::{Line, Triangle, ColorVertex};
 
 use super::{IndexedLineList, IndexedTriangleList};
 
@@ -15,18 +15,18 @@ impl Cube {
         Self { length }
     }
 
-    fn build_vertices(&self) -> Vec<Vertex> {
+    fn build_vertices(&self) -> Vec<ColorVertex> {
         let hl = self.length / 2.0;
 
         let mut vertices = Vec::new();
-        vertices.push(Vertex::new(-hl, -hl, -hl, Color::RED));
-        vertices.push(Vertex::new( hl, -hl, -hl, Color::GREEN));
-        vertices.push(Vertex::new(-hl,  hl, -hl, Color::BLUE));
-        vertices.push(Vertex::new( hl,  hl, -hl, Color::YELLOW));
-        vertices.push(Vertex::new(-hl, -hl,  hl, Color::CYAN));
-        vertices.push(Vertex::new( hl, -hl,  hl, Color::MAGENTA));
-        vertices.push(Vertex::new(-hl,  hl,  hl, Color::WHITE));
-        vertices.push(Vertex::new( hl,  hl,  hl, Color::BLACK));
+        vertices.push(ColorVertex::new(-hl, -hl, -hl, Color::RED));
+        vertices.push(ColorVertex::new( hl, -hl, -hl, Color::GREEN));
+        vertices.push(ColorVertex::new(-hl,  hl, -hl, Color::BLUE));
+        vertices.push(ColorVertex::new( hl,  hl, -hl, Color::YELLOW));
+        vertices.push(ColorVertex::new(-hl, -hl,  hl, Color::CYAN));
+        vertices.push(ColorVertex::new( hl, -hl,  hl, Color::MAGENTA));
+        vertices.push(ColorVertex::new(-hl,  hl,  hl, Color::WHITE));
+        vertices.push(ColorVertex::new( hl,  hl,  hl, Color::BLACK));
         vertices
     }
 }

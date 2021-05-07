@@ -1,6 +1,6 @@
 use cgmath::prelude::*;
 use cgmath::Vector3;
-use super::vertex::Vertex;
+use super::vertex::ColorVertex;
 
 /// Line primitive.
 #[derive(Clone, Copy)]
@@ -20,7 +20,7 @@ pub enum WindingOrder {
     Both,
 }
 
-impl Triangle<Vertex> {
+impl Triangle<ColorVertex> {
     /// Returns the winding order of this triangle.
     pub fn order(&self) -> WindingOrder {
         let u = (self.1.position - self.0.position).truncate();

@@ -3,13 +3,12 @@ use cgmath::Matrix4;
 
 use crate::math::Color;
 
-use super::Vertex;
+use super::ColorVertex;
 
 pub trait Effect {
-    fn vs(&self, input: &Vertex) -> Vertex;
-    fn ps(&self, input: &Vertex) -> Color;
+    fn vs(&self, input: &ColorVertex) -> ColorVertex;
+    fn ps(&self, input: &ColorVertex) -> Color;
 }
-
 
 pub struct BasicEffect {
     pub worldviewproj: Matrix4<f32>,
@@ -28,7 +27,7 @@ impl Default for BasicEffect {
 }
 
 impl Effect for BasicEffect {
-    fn vs(&self, input: &Vertex) -> Vertex {
+    fn vs(&self, input: &ColorVertex) -> ColorVertex {
         let mut vertex = *input;
 
         vertex.position = self.worldviewproj * vertex.position;
@@ -36,7 +35,7 @@ impl Effect for BasicEffect {
         vertex
     }
 
-    fn ps(&self, input: &Vertex) -> Color {
+    fn ps(&self, input: &ColorVertex) -> Color {
         crate::math::vector4_to_color(&input.color)
     }
 }
