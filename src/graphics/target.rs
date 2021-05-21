@@ -1,7 +1,7 @@
 use crate::math::Color;
 
 /// Interface for output bitmap buffer.
-pub trait BitmapOutput {
+pub trait RenderTarget {
     /// Returns the dimensions of this buffer.
     fn size(&self) -> (u32, u32);
 

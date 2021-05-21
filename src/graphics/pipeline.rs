@@ -4,7 +4,7 @@ use std::{marker::PhantomData, mem::swap};
 
 use super::clipping::{clip_line, clip_triangle};
 use super::primitives::{Line, Triangle, WindingOrder};
-use super::{BitmapOutput, Effect, Vertex};
+use super::{RenderTarget, Effect, Vertex};
 
 #[allow(dead_code)]
 pub enum FillMode {
@@ -36,7 +36,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
 
     /// Draws multiple lines onto the render target.
     #[allow(dead_code)]
-    pub fn draw_lines<B: BitmapOutput>(&self, primitives: &[Line<V>], target: &mut B) {
+    pub fn draw_lines<B: RenderTarget>(&self, primitives: &[Line<V>], target: &mut B) {
         // Copy input.
         let primitives = primitives.to_vec();
 
@@ -54,7 +54,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
 
     /// Draws multiple lines onto the render target. Allows vertex indexing.
     #[allow(dead_code)]
-    pub fn draw_indexed_lines<B: BitmapOutput>(
+    pub fn draw_indexed_lines<B: RenderTarget>(
         &self,
         vertices: &[V],
         primitives: &[Line<usize>],
@@ -78,7 +78,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
 
     /// Draws multiple triangles onto the render target.
     #[allow(dead_code)]
-    pub fn draw_triangles<B: BitmapOutput>(&self, primitives: &[Triangle<V>], target: &mut B) {
+    pub fn draw_triangles<B: RenderTarget>(&self, primitives: &[Triangle<V>], target: &mut B) {
         // Copy input buffer.
         let primitives = primitives.to_vec();
 
@@ -95,7 +95,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
 
     /// Draws multiple triangles onto the render target. Allows vertex indexing.
     #[allow(dead_code)]
-    pub fn draw_indexed_triangles<B: BitmapOutput>(
+    pub fn draw_indexed_triangles<B: RenderTarget>(
         &self,
         vertices: &[V],
         primitives: &[Triangle<usize>],
@@ -128,7 +128,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
 
     /// Applies the primitive processing stage onto the input line.
     /// Since lines can't go through front face culling, this method only clips the line.
-    fn line_processor<B: BitmapOutput>(&self, mut line: Line<V>, target: &mut B) {
+    fn line_processor<B: RenderTarget>(&self, mut line: Line<V>, target: &mut B) {
         // Clip lines outside the window.
         if let Some(cline) = clip_line(line) {
             line = cline;
@@ -150,7 +150,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     ///
     /// First, the triangle is culled, then it's clipped against the view frustum, then each
     /// resulting triangle is sent for postprocessing.
-    fn triangle_processor<B: BitmapOutput>(&self, triangle: Triangle<V>, target: &mut B) {
+    fn triangle_processor<B: RenderTarget>(&self, triangle: Triangle<V>, target: &mut B) {
         // Face culling.
         match (self.front_face, triangle.order()) {
             (WindingOrder::CounterClockwise, WindingOrder::Clockwise) => {
@@ -176,7 +176,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     }
 
     /// Executes the post-clipping processing stage over the input triangle
-    fn triangle_postprocessor<B: BitmapOutput>(&self, mut triangle: Triangle<V>, target: &mut B) {
+    fn triangle_postprocessor<B: RenderTarget>(&self, mut triangle: Triangle<V>, target: &mut B) {
         // Convert into screen space.
         // TODO: Use viewport instead of screen.
         let screen = target.size();
@@ -190,7 +190,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     }
 
     /// Renders the line onto the render target. Uses the DDA algorithm.
-    fn render_line<B: BitmapOutput>(&self, line: Line<V>, target: &mut B) {
+    fn render_line<B: RenderTarget>(&self, line: Line<V>, target: &mut B) {
         // Line traversal.
         let delta = line.1 - line.0;
         let delta_pos = delta.position();
@@ -210,7 +210,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     }
 
     /// Renders the line onto the render target.
-    fn render_triangle<B: BitmapOutput>(&self, triangle: Triangle<V>, target: &mut B) {
+    fn render_triangle<B: RenderTarget>(&self, triangle: Triangle<V>, target: &mut B) {
         match self.fill_mode {
             FillMode::Wireframe => {
                 self.render_line(Line(triangle.0, triangle.1), target);
@@ -271,7 +271,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     /// Renders a flat top triangle onto the screen.
     ///
     /// This functions is a decorator for the `draw_flat_triangle` call.
-    fn draw_flattop_triangle<B: BitmapOutput>(&self, triangle: Triangle<V>, target: &mut B) {
+    fn draw_flattop_triangle<B: RenderTarget>(&self, triangle: Triangle<V>, target: &mut B) {
         let dit0 = triangle.2 - triangle.0;
         let dit1 = triangle.2 - triangle.1;
         let dy = dit0.position().y;
@@ -285,7 +285,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     /// Renders a flat bottom triangle onto the screen.
     ///
     /// This functions is a decorator for the `draw_flat_triangle` call.
-    fn draw_flatbottom_triangle<B: BitmapOutput>(&self,
+    fn draw_flatbottom_triangle<B: RenderTarget>(&self,
         triangle: Triangle<V>,
         target: &mut B,
     ) {
@@ -299,7 +299,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
         self.draw_flat_triangle(triangle.0, triangle.0, dv0, dv1, dy, target);
     }
 
-    fn draw_flat_triangle<B: BitmapOutput>(&self, it0: V, it1: V, dv0: V, dv1: V, height: f32, target: &mut B) {
+    fn draw_flat_triangle<B: RenderTarget>(&self, it0: V, it1: V, dv0: V, dv1: V, height: f32, target: &mut B) {
         // Calculate start and end scanlines.
         let y_start = f32::max(f32::ceil(it0.position().y - 0.5), 0.0);
         let y_end = f32::min(f32::ceil(it0.position().y + height - 0.5), target.size().1 as f32);

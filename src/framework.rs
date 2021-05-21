@@ -5,7 +5,7 @@ use sdl2::pixels::Color;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::graphics::BitmapOutput;
+use crate::graphics::RenderTarget;
 
 /// The backend of the application.
 ///
@@ -66,7 +66,7 @@ pub struct WindowTarget {
     canvas: Weak<RefCell<WindowCanvas>>,
 }
 
-impl BitmapOutput for WindowTarget {
+impl RenderTarget for WindowTarget {
     fn size(&self) -> (u32, u32) {
         self.canvas.upgrade().unwrap().borrow().window().size()
     }
