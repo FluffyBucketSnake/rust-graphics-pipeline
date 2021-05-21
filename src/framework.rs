@@ -64,11 +64,12 @@ impl From<WindowCanvas> for Window {
 
 pub struct WindowTarget {
     canvas: Weak<RefCell<WindowCanvas>>,
+    zbuffer: Vec<f32>,
 }
 
 impl RenderTarget for WindowTarget {
     fn size(&self) -> (u32, u32) {
-        self.canvas.upgrade().unwrap().borrow().window().size()
+        (*self.canvas.upgrade().unwrap()).borrow().window().size()
     }
 
     fn clear(&mut self, color: Color) {
@@ -76,6 +77,8 @@ impl RenderTarget for WindowTarget {
         let mut canvas = rc.borrow_mut();
         canvas.set_draw_color(color);
         canvas.clear();
+
+        self.zbuffer.iter_mut().for_each(| d | *d = f32::INFINITY);
     }
 
     fn put_pixel(&mut self, position: (u32, u32), color: Color) {
@@ -83,6 +86,15 @@ impl RenderTarget for WindowTarget {
         let mut canvas = rc.borrow_mut();
         canvas.set_draw_color(color);
         canvas.draw_point(sdl2::rect::Point::new(position.0 as i32, position.1 as i32)).ok();
+    }
+
+    fn test_and_set_depth(&mut self, position: (u32, u32), depth: f32) -> bool {
+        let buffer_pos = (position.0 + (position.1 * self.size().0)) as usize;
+        if depth < self.zbuffer[buffer_pos] {
+            self.zbuffer[buffer_pos] = depth;
+            true
+        }
+        else { false }
     }
 
     fn present(&mut self) {
@@ -94,6 +106,11 @@ impl RenderTarget for WindowTarget {
 
 impl From<Weak<RefCell<WindowCanvas>>> for WindowTarget {
     fn from(canvas: Weak<RefCell<WindowCanvas>>) -> Self {
-        Self { canvas }
+        let size = (*canvas.upgrade().unwrap()).borrow().window().size();
+        let len = size.0 * size.1;
+        Self { 
+            canvas,
+            zbuffer: vec![f32::INFINITY; len as usize],
+        }
     }
 }

@@ -3,7 +3,7 @@ use sdl2::keyboard::{KeyboardState, Scancode};
 use sdl2::mouse::MouseState;
 
 use crate::framework::{Window, WindowTarget};
-use crate::graphics::{BasicEffect, BitmapOutput, ColorVertex, Pipeline};
+use crate::graphics::{BasicEffect, RenderTarget, ColorVertex, Pipeline};
 use crate::models::{IndexedLineList, IndexedTriangleList, LineList, TriangleList};
 
 use super::Scene;

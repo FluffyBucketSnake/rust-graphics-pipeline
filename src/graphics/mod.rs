@@ -1,8 +1,8 @@
-mod target;
 mod clipping;
 mod pipeline;
 mod primitives;
 mod shaders;
+mod target;
 mod vertex;
 
 pub use self::target::*;

@@ -10,6 +10,10 @@ pub trait RenderTarget {
 
     /// Sets the color value at the pixel coordinates.
     fn put_pixel(&mut self, position: (u32, u32), color: Color);
+
+    /// Tests and sets an value on the depth buffer if the value is smaller than what is 
+    /// currently stored.
+    fn test_and_set_depth(&mut self, position: (u32, u32), depth: f32) -> bool;
     
     /// Applies any rendering operations since last call.
     /// 

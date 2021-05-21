@@ -4,7 +4,7 @@ use std::{marker::PhantomData, mem::swap};
 
 use super::clipping::{clip_line, clip_triangle};
 use super::primitives::{Line, Triangle, WindingOrder};
-use super::{RenderTarget, Effect, Vertex};
+use super::{Effect, RenderTarget, Vertex};
 
 #[allow(dead_code)]
 pub enum FillMode {
@@ -16,7 +16,11 @@ pub enum FillMode {
 ///
 /// It accepts a collection of primitives as input, while output a raster render of the scene
 /// into the specified `BitmapOutput`.
-pub struct Pipeline<V, E> where E: Effect<V>, V: Vertex {
+pub struct Pipeline<V, E>
+where
+    E: Effect<V>,
+    V: Vertex,
+{
     pub fill_mode: FillMode,
     pub front_face: WindingOrder,
     pub effect: E,
@@ -116,7 +120,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
                 vertices[primitive.0],
                 vertices[primitive.1],
                 vertices[primitive.2],
-            );  // Primitive assembly.
+            ); // Primitive assembly.
             self.triangle_processor(triangle, target);
         }
     }
@@ -154,11 +158,11 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
         // Face culling.
         match (self.front_face, triangle.order()) {
             (WindingOrder::CounterClockwise, WindingOrder::Clockwise) => {
-                return; 
-            },
+                return;
+            }
             (WindingOrder::Clockwise, WindingOrder::CounterClockwise) => {
                 return;
-            },
+            }
             _ => {}
         };
 
@@ -200,10 +204,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
         let mut i: f32 = 0.0;
         while i < step {
             let Vector4 { x, y, z: _, w: _ } = it.position();
-            target.put_pixel(
-                (x as u32, y as u32),
-                self.effect.ps(&it),
-            );
+            self.draw_vertex((x as u32, y as u32), &it, target);
             it += dv;
             i += 1.0;
         }
@@ -285,10 +286,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     /// Renders a flat bottom triangle onto the screen.
     ///
     /// This functions is a decorator for the `draw_flat_triangle` call.
-    fn draw_flatbottom_triangle<B: RenderTarget>(&self,
-        triangle: Triangle<V>,
-        target: &mut B,
-    ) {
+    fn draw_flatbottom_triangle<B: RenderTarget>(&self, triangle: Triangle<V>, target: &mut B) {
         let dit0 = triangle.1 - triangle.0;
         let dit1 = triangle.2 - triangle.0;
         let dy = dit0.position().y;
@@ -299,10 +297,21 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
         self.draw_flat_triangle(triangle.0, triangle.0, dv0, dv1, dy, target);
     }
 
-    fn draw_flat_triangle<B: RenderTarget>(&self, it0: V, it1: V, dv0: V, dv1: V, height: f32, target: &mut B) {
+    fn draw_flat_triangle<B: RenderTarget>(
+        &self,
+        it0: V,
+        it1: V,
+        dv0: V,
+        dv1: V,
+        height: f32,
+        target: &mut B,
+    ) {
         // Calculate start and end scanlines.
         let y_start = f32::max(f32::ceil(it0.position().y - 0.5), 0.0);
-        let y_end = f32::min(f32::ceil(it0.position().y + height - 0.5), target.size().1 as f32);
+        let y_end = f32::min(
+            f32::ceil(it0.position().y + height - 0.5),
+            target.size().1 as f32,
+        );
 
         // Left and right edge interpolants
         let mut it_edge0 = it0 + dv0 * (y_start + 0.5 - it0.position().y);
@@ -313,7 +322,10 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
         while y < y_end {
             // Calculate the start and end pixel positions.
             let x_start = f32::max(f32::ceil(it_edge0.position().x - 0.5), 0.0);
-            let x_end = f32::min(f32::ceil(it_edge1.position().x - 0.5), target.size().0 as f32);
+            let x_end = f32::min(
+                f32::ceil(it_edge1.position().x - 0.5),
+                target.size().0 as f32,
+            );
 
             // Scanline interpolant
             let mut it = it_edge0;
@@ -328,8 +340,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
             // Draw each pixel.
             let mut x = x_start;
             while x < x_end {
-                target.put_pixel((x as u32, y as u32), self.effect.ps(&it));
-
+                self.draw_vertex((x as u32, y as u32), &it, target);
                 x += 1.0;
                 it += dv;
             }
@@ -338,6 +349,13 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
             y += 1.0;
             it_edge0 += dv0;
             it_edge1 += dv1;
+        }
+    }
+
+    #[inline]
+    fn draw_vertex<B: RenderTarget>(&self, position: (u32, u32), vertex: &V, target: &mut B) {
+        if target.test_and_set_depth(position, vertex.position().z) {
+            target.put_pixel(position, self.effect.ps(vertex));
         }
     }
 }
