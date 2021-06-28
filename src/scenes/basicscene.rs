@@ -19,7 +19,7 @@ pub enum Model {
 /// A scene for showing a model under a basic pipeline.
 pub struct BasicScene {
     output: WindowTarget,
-    pipeline: Pipeline<ColorVertex, BasicEffect>,
+    pipeline: Pipeline<ColorVertex, BasicEffect<'static>>,
 
     model: Model,
 
