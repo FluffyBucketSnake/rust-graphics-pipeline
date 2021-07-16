@@ -1,8 +1,8 @@
-use sdl2::pixels::Color;
+use cgmath::{Vector3, vec3};
 
-use crate::graphics::{Line, Triangle, ColorVertex};
+use crate::graphics::{Line, Triangle};
 
-use super::{IndexedLineList, IndexedTriangleList};
+use super::ModelBuilder;
 
 /// Represents a simple cube.
 pub struct Cube {
@@ -14,49 +14,29 @@ impl Cube {
     pub fn new(length: f32) -> Self {
         Self { length }
     }
-
-    fn build_vertices(&self) -> Vec<ColorVertex> {
+    
+    fn _build_vertices(&self) -> Vec<Vector3<f32>> {
         let hl = self.length / 2.0;
 
         let mut vertices = Vec::new();
-        vertices.push(ColorVertex::new(-hl, -hl, -hl, Color::RED));
-        vertices.push(ColorVertex::new( hl, -hl, -hl, Color::GREEN));
-        vertices.push(ColorVertex::new(-hl,  hl, -hl, Color::BLUE));
-        vertices.push(ColorVertex::new( hl,  hl, -hl, Color::YELLOW));
-        vertices.push(ColorVertex::new(-hl, -hl,  hl, Color::CYAN));
-        vertices.push(ColorVertex::new( hl, -hl,  hl, Color::MAGENTA));
-        vertices.push(ColorVertex::new(-hl,  hl,  hl, Color::WHITE));
-        vertices.push(ColorVertex::new( hl,  hl,  hl, Color::BLACK));
+        vertices.push(vec3(-hl, -hl, -hl));
+        vertices.push(vec3( hl, -hl, -hl));
+        vertices.push(vec3(-hl,  hl, -hl));
+        vertices.push(vec3( hl,  hl, -hl));
+        vertices.push(vec3(-hl, -hl,  hl));
+        vertices.push(vec3( hl, -hl,  hl));
+        vertices.push(vec3(-hl,  hl,  hl));
+        vertices.push(vec3( hl,  hl,  hl));
         vertices
     }
 }
 
-impl Into<IndexedTriangleList<ColorVertex>> for &Cube {
-    fn into(self) -> IndexedTriangleList<ColorVertex> {
-        let vertices = self.build_vertices();
-        
-        let mut primitives = Vec::new();
-        primitives.push(Triangle(0, 2, 1));
-        primitives.push(Triangle(2, 3, 1));
-        primitives.push(Triangle(1, 3, 5));
-        primitives.push(Triangle(3, 7, 5));
-        primitives.push(Triangle(2, 6, 3));
-        primitives.push(Triangle(3, 6, 7));
-        primitives.push(Triangle(4, 5, 7));
-        primitives.push(Triangle(4, 7, 6));
-        primitives.push(Triangle(0, 4, 2));
-        primitives.push(Triangle(2, 4, 6));
-        primitives.push(Triangle(0, 1, 4));
-        primitives.push(Triangle(1, 5, 4));
-
-        IndexedTriangleList { vertices, primitives }
+impl ModelBuilder<Line<usize>, Vector3<f32>> for Cube {
+    fn build_vertices(&self) -> Vec<Vector3<f32>> {
+        self._build_vertices()
     }
-}
 
-impl Into<IndexedLineList<ColorVertex>> for &Cube {
-    fn into(self) -> IndexedLineList<ColorVertex> {
-        let vertices = self.build_vertices();
-
+    fn build_primitives(&self) -> Vec<Line<usize>> { 
         let mut primitives = Vec::new();
         primitives.push(Line(0, 1));
         primitives.push(Line(0, 2));
@@ -70,7 +50,29 @@ impl Into<IndexedLineList<ColorVertex>> for &Cube {
         primitives.push(Line(4, 6));
         primitives.push(Line(5, 7));
         primitives.push(Line(6, 7));
+        primitives
+    }
+}
 
-        IndexedLineList { vertices, primitives }
+impl ModelBuilder<Triangle<usize>, Vector3<f32>> for Cube {
+    fn build_vertices(&self) -> Vec<Vector3<f32>> {
+        self._build_vertices()
+    }
+
+    fn build_primitives(&self) -> Vec<Triangle<usize>> {  
+        let mut primitives = Vec::new();
+        primitives.push(Triangle(0, 2, 1));
+        primitives.push(Triangle(2, 3, 1));
+        primitives.push(Triangle(1, 3, 5));
+        primitives.push(Triangle(3, 7, 5));
+        primitives.push(Triangle(2, 6, 3));
+        primitives.push(Triangle(3, 6, 7));
+        primitives.push(Triangle(4, 5, 7));
+        primitives.push(Triangle(4, 7, 6));
+        primitives.push(Triangle(0, 4, 2));
+        primitives.push(Triangle(2, 4, 6));
+        primitives.push(Triangle(0, 1, 4));
+        primitives.push(Triangle(1, 5, 4));
+        primitives
     }
 }
