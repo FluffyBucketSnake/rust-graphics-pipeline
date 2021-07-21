@@ -3,33 +3,39 @@ use sdl2::keyboard::{KeyboardState, Scancode};
 use sdl2::mouse::MouseState;
 
 use crate::framework::{Window, WindowTarget};
-use crate::graphics::{BasicEffect, RenderTarget, ColorVertex, Pipeline};
+use crate::graphics::{BasicEffect, Effect, Pipeline, RenderTarget, Vertex};
 use crate::models::{IndexedLineList, IndexedTriangleList, LineList, TriangleList};
 
 use super::Scene;
 
 #[allow(dead_code)]
-pub enum Model {
-    LineList(LineList<ColorVertex>),
-    IndexedLineList(IndexedLineList<ColorVertex>),
-    TriangleList(TriangleList<ColorVertex>),
-    IndexedTriangleList(IndexedTriangleList<ColorVertex>),
+pub enum Model<V: Vertex> {
+    LineList(LineList<V>),
+    IndexedLineList(IndexedLineList<V>),
+    TriangleList(TriangleList<V>),
+    IndexedTriangleList(IndexedTriangleList<V>),
 }
 
 /// A scene for showing a model under a basic pipeline.
-pub struct BasicScene {
+pub struct BasicScene<V: Vertex>
+where
+    BasicEffect<'static>: Effect<V>,
+{
     output: WindowTarget,
-    pipeline: Pipeline<ColorVertex, BasicEffect<'static>>,
+    pipeline: Pipeline<V, BasicEffect<'static>>,
 
-    model: Model,
+    model: Model<V>,
 
     eye: Point3<f32>,
     yaw: f32,
     pitch: f32,
 }
 
-impl BasicScene {
-    pub fn new(window: &Window, model: Model) -> Self {
+impl<V: Vertex> BasicScene<V>
+where
+    BasicEffect<'static>: Effect<V>,
+{
+    pub fn new(window: &Window, model: Model<V>) -> Self {
         Self {
             output: window.get_rendertarget(),
             pipeline: Pipeline::new(BasicEffect::default()),
@@ -43,7 +49,10 @@ impl BasicScene {
     }
 }
 
-impl Scene for BasicScene {
+impl<V: Vertex> Scene for BasicScene<V>
+where
+    BasicEffect<'static>: Effect<V>,
+{
     fn draw(&mut self) {
         self.output.clear(sdl2::pixels::Color::BLACK);
 
