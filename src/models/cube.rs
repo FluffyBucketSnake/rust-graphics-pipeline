@@ -32,11 +32,11 @@ impl Cube {
 }
 
 impl ModelBuilder<Line<usize>, Vector3<f32>> for Cube {
-    fn build_vertices(&self) -> Vec<Vector3<f32>> {
+    fn build_vertices(&mut self) -> Vec<Vector3<f32>> {
         self._build_vertices()
     }
 
-    fn build_primitives(&self) -> Vec<Line<usize>> { 
+    fn build_primitives(&mut self) -> Vec<Line<usize>> { 
         let mut primitives = Vec::new();
         primitives.push(Line(0, 1));
         primitives.push(Line(0, 2));
@@ -55,11 +55,11 @@ impl ModelBuilder<Line<usize>, Vector3<f32>> for Cube {
 }
 
 impl ModelBuilder<Triangle<usize>, Vector3<f32>> for Cube {
-    fn build_vertices(&self) -> Vec<Vector3<f32>> {
+    fn build_vertices(&mut self) -> Vec<Vector3<f32>> {
         self._build_vertices()
     }
 
-    fn build_primitives(&self) -> Vec<Triangle<usize>> {  
+    fn build_primitives(&mut self) -> Vec<Triangle<usize>> {  
         let mut primitives = Vec::new();
         primitives.push(Triangle(0, 2, 1));
         primitives.push(Triangle(2, 3, 1));
