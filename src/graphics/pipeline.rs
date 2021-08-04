@@ -355,7 +355,9 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     #[inline]
     fn draw_vertex<B: RenderTarget>(&self, position: (u32, u32), vertex: &V, target: &mut B) {
         if target.test_and_set_depth(position, vertex.position().z) {
-            target.put_pixel(position, self.effect.ps(vertex));
+            let z_inv = (1.0f64 / vertex.position().z as f64) as f32;
+            let vertex = vertex.clone() * z_inv;
+            target.put_pixel(position, self.effect.ps(&vertex));
         }
     }
 }
