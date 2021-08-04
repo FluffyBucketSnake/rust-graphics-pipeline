@@ -76,8 +76,10 @@ fn sample_texture(texture: &Surface, x: f32, y: f32) -> Vector4<f32> {
         let raw_surface = texture.raw();
         let bpp = (*(*raw_surface).format).BytesPerPixel as isize;
         let pitch = (*raw_surface).pitch as isize;
-        let x = x as isize;
-        let y = y as isize;
+        let x = x.max(0.0).min(1.0);
+        let y = y.max(0.0).min(1.0);
+        let x = (x * (texture.width() as f32)) as isize;
+        let y = (y * (texture.height() as f32)) as isize;
         let p = ((*texture.raw()).pixels as *mut u8).offset((y * pitch) + (x * bpp));
         match bpp {
             1 => *p as u32,

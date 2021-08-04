@@ -118,10 +118,18 @@ pub struct ColorTextureVertex {
 }
 
 impl ColorTextureVertex {
-    pub fn new(x: f32, y: f32, z: f32, color: Color, u: f32, v: f32) -> ColorTextureVertex {
+    pub fn new(x: f32, y: f32, z: f32, color: Color, u: f32, v: f32) -> Self {
         Self {
             position: Vector4::new(x, y, z, 1.0),
             color: crate::math::color_to_vector4(&color),
+            uv: Vector2::new(u, v),
+        }
+    }
+
+    pub fn from_colorvertex(vertex: ColorVertex, u: f32, v: f32) -> Self {
+        Self {
+            position: vertex.position,
+            color: vertex.color,
             uv: Vector2::new(u, v),
         }
     }

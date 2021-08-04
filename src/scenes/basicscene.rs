@@ -17,12 +17,12 @@ pub enum Model<V: Vertex> {
 }
 
 /// A scene for showing a model under a basic pipeline.
-pub struct BasicScene<V: Vertex>
+pub struct BasicScene<'a, V: Vertex>
 where
-    BasicEffect<'static>: Effect<V>,
+    BasicEffect<'a>: Effect<V>,
 {
     output: WindowTarget,
-    pipeline: Pipeline<V, BasicEffect<'static>>,
+    pipeline: Pipeline<V, BasicEffect<'a>>,
 
     model: Model<V>,
 
@@ -31,14 +31,18 @@ where
     pitch: f32,
 }
 
-impl<V: Vertex> BasicScene<V>
+impl<'a, V: Vertex> BasicScene<'a, V>
 where
-    BasicEffect<'static>: Effect<V>,
+    BasicEffect<'a>: Effect<V>,
 {
     pub fn new(window: &Window, model: Model<V>) -> Self {
+        Self::with_effect(window, model, BasicEffect::default())
+    }
+
+    pub fn with_effect(window: &Window, model: Model<V>, effect: BasicEffect<'a>) -> Self {
         Self {
             output: window.get_rendertarget(),
-            pipeline: Pipeline::new(BasicEffect::default()),
+            pipeline: Pipeline::new(effect),
 
             model,
 
@@ -49,9 +53,9 @@ where
     }
 }
 
-impl<V: Vertex> Scene for BasicScene<V>
+impl<'a, V: Vertex> Scene for BasicScene<'a, V>
 where
-    BasicEffect<'static>: Effect<V>,
+    BasicEffect<'a>: Effect<V>,
 {
     fn draw(&mut self) {
         self.output.clear(sdl2::pixels::Color::BLACK);

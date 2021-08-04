@@ -10,9 +10,9 @@ use crate::scenes::Scene;
 ///
 /// Responsible for the management of execution flow, event loop, the main window, 
 /// scene management and shared resources.
-pub struct App<'f> {
+pub struct App<'f, 's> {
     current: usize,
-    scenes: Vec<Box<dyn Scene>>,
+    scenes: Vec<Box<dyn Scene + 's>>,
     framework: &'f Framework,
     window: Window,
 }
@@ -21,7 +21,7 @@ const WINDOW_TITLE: &str = "Dummy Graphics Pipeline";
 const WINDOW_WIDTH: u32 = 640;
 const WINDOW_HEIGHT: u32 = 640;
 
-impl<'f> App<'f> {
+impl<'f, 's> App<'f, 's> {
     /// Initializes the application using the specified framework.
     pub fn init(framework: &'f Framework) -> Self {
         Self {
@@ -38,7 +38,7 @@ impl<'f> App<'f> {
     }
 
     /// Adds the scene into the application.
-    pub fn add_scene<S: Scene + 'static>(&mut self, scene: S) {
+    pub fn add_scene<'a: 's,S: Scene + 'a>(&mut self, scene: S) {
         self.scenes.push(Box::new(scene));
     }
 
