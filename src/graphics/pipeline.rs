@@ -3,7 +3,7 @@ use cgmath::Vector4;
 use std::{marker::PhantomData, mem::swap};
 
 use super::clipping::{clip_line, clip_triangle};
-use super::primitives::{Line, Triangle, WindingOrder};
+use super::primitives::{Line, Primitive, Triangle, WindingOrder};
 use super::{Effect, RenderTarget, Vertex};
 
 #[allow(dead_code)]
@@ -156,7 +156,7 @@ impl<V: Vertex, E: Effect<V>> Pipeline<V, E> {
     /// resulting triangle is sent for postprocessing.
     fn triangle_processor<B: RenderTarget>(&self, triangle: Triangle<V>, target: &mut B) {
         // Face culling.
-        match (self.front_face, triangle.order()) {
+        match (self.front_face, triangle.get_winding()) {
             (WindingOrder::CounterClockwise, WindingOrder::Clockwise) => {
                 return;
             }
