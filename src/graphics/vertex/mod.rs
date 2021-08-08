@@ -1,5 +1,6 @@
 mod colortexturevertex;
 mod colorvertex;
+mod vector_impls;
 mod vertex;
 
 pub use colortexturevertex::*;
