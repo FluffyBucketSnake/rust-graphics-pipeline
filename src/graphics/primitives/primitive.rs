@@ -8,6 +8,7 @@ pub enum WindingOrder {
 }
 
 pub trait Primitive<V: Vertex> {
+    // TODO: Replace with is_front_face(&self, WindingOrder)
     fn get_winding(&self) -> WindingOrder;
 }
 
